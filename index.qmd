@@ -1,5 +1,5 @@
 ---
-title: "Anime Openings & Endings – Computational Musicology"
+title: "Anime Openings & Endings"
 author: "Mehmed"
 format:
   dashboard:
@@ -15,15 +15,14 @@ library(compmus)
 
 pitch_levels <- rev(c("C","C#","D","D#","E","F","F#","G","G#","A","A#","B"))
 
-# ── Corpus laden ──────────────────────────────────────────────────────
-openings <- read_csv("Anime_Intros_THAT_GO_HARD.csv") %>%
+openings <- read_csv("Anime_Intros_THAT_GO_HARD.csv", show_col_types = FALSE) %>%
   select(`Track Name`, `Artist Name(s)`, Energy, Valence, Key, Mode,
-         Tempo, Loudness, Danceability) %>%
+         Tempo, Loudness, Danceability, `Duration (ms)`) %>%
   mutate(type = "Opening")
 
-endings <- read_csv("Anime_Endings.csv") %>%
+endings <- read_csv("Anime_Endings.csv", show_col_types = FALSE) %>%
   select(`Track Name`, `Artist Name(s)`, Energy, Valence, Key, Mode,
-         Tempo, Loudness, Danceability) %>%
+         Tempo, Loudness, Danceability, `Duration (ms)`) %>%
   mutate(type = "Ending")
 
 corpus <- bind_rows(openings, endings) %>%
@@ -37,17 +36,18 @@ corpus <- bind_rows(openings, endings) %>%
       Key == 0  ~ "C",   Key == 1  ~ "C#", Key == 2  ~ "D",
       Key == 3  ~ "D#",  Key == 4  ~ "E",  Key == 5  ~ "F",
       Key == 6  ~ "F#",  Key == 7  ~ "G",  Key == 8  ~ "G#",
-      Key == 9  ~ "A",   Key == 10 ~ "A#", Key == 11 ~ "B"
+      Key == 9  ~ "A",   Key == 10 ~ "A#", Key == 11 ~ "B",
+      TRUE ~ "?"
     ),
     pitch_class = factor(pitch_class,
-      levels = c("C","C#","D","D#","E","F","F#","G","G#","A","A#","B")),
-    mode_label = if_else(Mode == 1, "Major", "Minor")
+      levels = c("C","C#","D","D#","E","F","F#","G","G#","A","A#","B","?")),
+    mode_label  = if_else(Mode == 1, "Major", "Minor"),
+    duration_s  = `Duration (ms)` / 1000
   )
 
 top_outliers <- corpus %>% slice_max(outlier_score, n = 8)
 
-# ── Sonic Visualiser chroma helper ────────────────────────────────────
-read_sv_chroma <- function(path, frame_dur = 0.046439909) {
+read_sv_chroma <- function(path, frame_dur = NULL) {
   first_line <- readLines(path, n = 1)
   has_header <- grepl("TIME|Time|time", first_line)
   if (has_header) {
@@ -55,8 +55,9 @@ read_sv_chroma <- function(path, frame_dur = 0.046439909) {
     colnames(df)[1] <- "Time"
     df
   } else {
+    fd <- if (is.null(frame_dur)) 0.046439909 else frame_dur
     read.csv(path, header = FALSE, check.names = FALSE) %>%
-      mutate(Time = (row_number() - 1) * frame_dur) %>%
+      mutate(Time = (row_number() - 1) * fd) %>%
       select(Time, V1:V12) %>%
       rename(C=V1, `C#`=V2, D=V3, `D#`=V4, E=V5, F=V6,
              `F#`=V7, G=V8, `G#`=V9, A=V10, `A#`=V11, B=V12)
@@ -73,9 +74,10 @@ make_chromagram <- function(df, title) {
     ggplot(aes(x = Time, y = Pitch, fill = Intensity)) +
     geom_tile() +
     scale_fill_viridis_c(option = "magma", name = "Intensity") +
-    labs(title = title, x = "Time (seconds)", y = NULL) +
+    labs(title = title, x = "Tijd (seconden)", y = NULL) +
     theme_classic(base_size = 11) +
-    theme(axis.text.y = element_text(face = "bold"))
+    theme(axis.text.y = element_text(face = "bold"),
+          plot.title = element_text(size = 11, face = "bold"))
 }
 
 make_chroma_ssm <- function(df, title, every_nth = 10L) {
@@ -85,7 +87,6 @@ make_chroma_ssm <- function(df, title, every_nth = 10L) {
     mutate(pitches = list(c_across(C:B))) %>%
     ungroup() %>%
     mutate(duration = every_nth * 0.046439909, start = Time)
-
   df_sub %>%
     mutate(pitches = map(pitches, compmus_normalise, "manhattan")) %>%
     compmus_self_similarity(pitches, "aitchison") %>%
@@ -96,79 +97,113 @@ make_chroma_ssm <- function(df, title, every_nth = 10L) {
     coord_fixed() +
     scale_fill_viridis_c(guide = "none", option = "magma") +
     theme_classic(base_size = 11) +
-    labs(title = title, x = "Time (s)", y = "Time (s)")
+    labs(title = title, x = "Tijd (s)", y = "Tijd (s)") +
+    theme(plot.title = element_text(size = 11, face = "bold"))
+}
+
+make_tempogram <- function(df, title, window_sec = 8) {
+  frame_dur <- df$Time[2] - df$Time[1]
+  window_frames <- round(window_sec / frame_dur)
+  df %>%
+    mutate(energy = rowSums(across(C:B))) %>%
+    select(Time, energy) %>%
+    mutate(smooth = stats::filter(energy,
+                                   rep(1/window_frames, window_frames),
+                                   sides = 2) %>% as.numeric()) %>%
+    ggplot(aes(x = Time)) +
+    geom_line(aes(y = energy), color = "grey75", linewidth = 0.3, alpha = 0.8) +
+    geom_line(aes(y = smooth), color = "#e63946", linewidth = 1, na.rm = TRUE) +
+    labs(title = title,
+         subtitle = "Grijs = per frame  |  Rood = 8s voortschrijdend gemiddelde",
+         x = "Tijd (seconden)", y = "Chroma-energie (Sonic Visualiser)") +
+    theme_minimal(base_size = 11) +
+    theme(plot.title = element_text(size = 11, face = "bold"))
 }
 ```
 
 # Corpus
 
-## Column {width=40%}
+## Column {width=35%}
 
-### Row {.tabset}
+### Row
 
 #### Over dit corpus
 
-**Anime Openings & Endings**
+**Corpus: Anime Openings & Endings**
 
-Dit portfolio analyseert twee Spotify-playlists:
+Twee Spotify-playlists:
 
-- **Anime Openings** (*Anime Intros THAT GO HARD*): **200 nummers**
-- **Anime Endings**: **57 nummers**
+| | Tracks |
+|---|---|
+| 🔴 **Openings** | 200 |
+| 🔵 **Endings** | 57 |
 
-Anime openings zijn typisch energetisch en snel, bedoeld om de kijker op te winden. Endings zijn rustiger en melodieuzer. Maar klopt dat ook in de data?
+Anime openings zijn typisch snel en energetisch, bedoeld om de kijker op te winden. Endings zijn rustiger en melodieuzer. De Spotify-data laat zien of dat ook in de cijfers terugkomt.
 
-Het meest interessante geval is **"Just Awake" van Fear, and Loathing in Las Vegas** – hetzelfde nummer staat in *beide* playlists, maar als opening op **191 BPM** en als ending op **95.5 BPM** (exact de helft). Dit is de perfecte testcase om te zien hoe tempo de waarneming van energie beïnvloedt.
+Opvallendste track: **"Just Awake"** (Fear, and Loathing in Las Vegas) staat in *beide* playlists — als opening op **191 BPM** en als ending op **95.5 BPM** (exact de helft).
 
-**Corpus opvallend geval – Gats (outlier):**  
-Gats heeft de hoogste outlier-score (7.37) met Energy 0.193 en Valence 0.055 – extreem laag voor een anime opening. Luisterend klinkt het als ambiënte, dreigende muziek, heel anders dan de typische J-rock openings.
+Meest extreme outlier: **Gats** — Energy 0.193, Valence 0.055. Extreem donker en rustig voor een opening.
+
+## Column {width=65%}
+
+### Row {.tabset}
 
 #### Energie vs Valence
 
 ```{r corpus-scatter, fig.height=5}
 ggplot(corpus, aes(x = Valence, y = Energy, color = type)) +
-  geom_point(alpha = 0.6, size = 2.5) +
-  geom_point(data = top_outliers, size = 5, shape = 1, stroke = 2,
-             color = "black") +
+  geom_point(alpha = 0.55, size = 2.5) +
+  geom_point(data = top_outliers, size = 5, shape = 1,
+             stroke = 2, color = "black") +
   geom_text_repel(data = top_outliers,
                   aes(label = `Track Name`),
-                  size = 2.8, max.overlaps = 15,
-                  min.segment.length = 0) +
+                  size = 2.6, max.overlaps = 15,
+                  min.segment.length = 0, color = "grey20") +
   scale_color_manual(values = c("Opening" = "#e63946", "Ending" = "#457b9d")) +
-  labs(title = "Energie vs Valence – Anime Openings & Endings",
-       subtitle = "Zwarte cirkels = top-8 outliers",
-       x = "Valence", y = "Energy", color = NULL) +
-  theme_minimal(base_size = 12)
+  labs(title = "Energie vs Valence  (N = 257 tracks)",
+       subtitle = "Zwarte cirkels = top-8 outliers op Energy + Valence + Tempo + Loudness",
+       x = "Valence (positiviteit)", y = "Energy", color = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "top")
 ```
 
-## Column {width=60%}
+#### Tempoverdeling
 
-### Row {.tabset}
-
-#### Tempo verdeling
-
-```{r tempo-dist, fig.height=4}
+```{r tempo-dist, fig.height=5}
 ggplot(corpus, aes(x = Tempo, fill = type)) +
-  geom_histogram(binwidth = 10, position = "identity", alpha = 0.65) +
+  geom_histogram(binwidth = 8, position = "identity", alpha = 0.65) +
+  geom_vline(xintercept = 191, linetype = "dashed",
+             color = "#e63946", linewidth = 0.8) +
+  geom_vline(xintercept = 95.5, linetype = "dashed",
+             color = "#457b9d", linewidth = 0.8) +
+  annotate("text", x = 194, y = 17, label = "Just Awake\nOpening 191 BPM",
+           hjust = 0, size = 2.8, color = "#e63946") +
+  annotate("text", x = 98, y = 17, label = "Just Awake\nEnding 95.5 BPM",
+           hjust = 0, size = 2.8, color = "#457b9d") +
   scale_fill_manual(values = c("Opening" = "#e63946", "Ending" = "#457b9d")) +
-  labs(title = "Tempoverdeling – Openings vs Endings",
+  labs(title = "Tempoverdeling  (N = 257 tracks)",
+       subtitle = "Spotify Tempo (BPM)",
        x = "Tempo (BPM)", y = "Aantal tracks", fill = NULL) +
-  theme_minimal(base_size = 12)
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "top")
 ```
 
-#### Energie verdeling
+#### Energieverdeling
 
-```{r energy-dist, fig.height=4}
+```{r energy-dist, fig.height=5}
 ggplot(corpus, aes(x = type, y = Energy, fill = type)) +
-  geom_violin(alpha = 0.7, trim = FALSE) +
-  geom_boxplot(width = 0.15, fill = "white", outlier.shape = 16) +
+  geom_violin(alpha = 0.65, trim = FALSE) +
+  geom_boxplot(width = 0.12, fill = "white",
+               outlier.shape = 16, outlier.alpha = 0.5) +
   scale_fill_manual(values = c("Opening" = "#e63946", "Ending" = "#457b9d")) +
-  labs(title = "Energieverdeling per type",
-       x = NULL, y = "Energy", fill = NULL) +
+  labs(title = "Energieverdeling per type  (N = 257 tracks)",
+       subtitle = "Openings zijn gemiddeld energetischer",
+       x = NULL, y = "Energy (Spotify)", fill = NULL) +
   theme_minimal(base_size = 12) +
   theme(legend.position = "none")
 ```
 
-# Toonsoorten & Akkoorden
+# Toonsoorten
 
 ## Column {width=50%}
 
@@ -176,122 +211,212 @@ ggplot(corpus, aes(x = type, y = Energy, fill = type)) +
 
 #### Toonsoort-verdeling
 
-```{r key-dist, fig.height=5}
-pitch_dist <- corpus %>%
+```{r key-dist, fig.height=4.5}
+corpus %>%
+  filter(pitch_class != "?") %>%
   count(pitch_class, type) %>%
-  complete(pitch_class, type, fill = list(n = 0))
-
-ggplot(pitch_dist, aes(x = pitch_class, y = n, fill = type)) +
-  geom_col(position = "dodge", alpha = 0.85) +
+  complete(pitch_class, type, fill = list(n = 0)) %>%
+  ggplot(aes(x = pitch_class, y = n, fill = type)) +
+  geom_col(position = "dodge", alpha = 0.85, width = 0.7) +
   scale_fill_manual(values = c("Opening" = "#e63946", "Ending" = "#457b9d")) +
-  labs(title = "Toonsoort (Key) verdeling in het corpus",
-       subtitle = "Gebaseerd op Spotify API – 200 openings + 57 endings",
-       x = "Toonsoort (pitch class)", y = "Aantal tracks", fill = NULL) +
+  labs(title = "Toonsoort-verdeling  (Spotify API Key detectie)",
+       subtitle = "N = 257 tracks",
+       x = "Toonsoort", y = "Aantal tracks", fill = NULL) +
   theme_minimal(base_size = 12) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(legend.position = "top")
 ```
 
 ### Row
 
-#### Majeur vs Mineur
+#### Majeur vs Mineur × Valence
 
 ```{r mode-valence, fig.height=4}
 ggplot(corpus, aes(x = mode_label, y = Valence, fill = type)) +
-  geom_boxplot(alpha = 0.75, outlier.shape = 16) +
+  geom_boxplot(alpha = 0.75, outlier.shape = 16, outlier.alpha = 0.4) +
   scale_fill_manual(values = c("Opening" = "#e63946", "Ending" = "#457b9d")) +
   labs(title = "Majeur vs Mineur: effect op Valence",
-       subtitle = "Majeur klinkt positiever – klopt dat ook voor anime muziek?",
+       subtitle = "Klinkt majeur ook positiever in anime muziek?",
        x = "Modus", y = "Valence", fill = NULL) +
-  theme_minimal(base_size = 12)
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "top")
 ```
 
 ## Column {width=50%}
 
 ### Row
 
-#### Toonsoort × Energie
+#### Gemiddelde Energie per Toonsoort
 
-```{r key-energy, fig.height=5}
+```{r key-energy, fig.height=4.5}
 corpus %>%
+  filter(pitch_class != "?") %>%
   group_by(pitch_class, type) %>%
   summarise(avg_energy = mean(Energy), n = n(), .groups = "drop") %>%
-  filter(!is.na(pitch_class)) %>%
   ggplot(aes(x = pitch_class, y = avg_energy, fill = type)) +
-  geom_col(position = "dodge", alpha = 0.85) +
+  geom_col(position = "dodge", alpha = 0.85, width = 0.7) +
   scale_fill_manual(values = c("Opening" = "#e63946", "Ending" = "#457b9d")) +
-  labs(title = "Gemiddelde Energie per Toonsoort",
-       subtitle = "Sommige toonsoorten komen vaker voor in energetische nummers",
+  labs(title = "Gem. Energie per Toonsoort",
+       subtitle = "Zijn bepaalde toonsoorten energetischer?",
        x = "Toonsoort", y = "Gem. Energy", fill = NULL) +
   theme_minimal(base_size = 12) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(legend.position = "top")
 ```
 
 ### Row
 
-#### Toonsoort × Tempo
+#### Tempo per Toonsoort & Modus
 
 ```{r key-tempo, fig.height=4}
 corpus %>%
+  filter(pitch_class != "?") %>%
   group_by(pitch_class, mode_label) %>%
   summarise(avg_tempo = mean(Tempo), n = n(), .groups = "drop") %>%
-  filter(!is.na(pitch_class)) %>%
-  ggplot(aes(x = pitch_class, y = avg_tempo, color = mode_label, size = n)) +
-  geom_point(alpha = 0.85) +
+  ggplot(aes(x = pitch_class, y = avg_tempo,
+             color = mode_label, size = n)) +
+  geom_point(alpha = 0.9) +
   scale_color_manual(values = c("Major" = "#e63946", "Minor" = "#457b9d")) +
-  labs(title = "Gemiddeld Tempo per Toonsoort & Modus",
+  scale_size_continuous(range = c(2, 8)) +
+  labs(title = "Gem. Tempo per Toonsoort & Modus",
+       subtitle = "Puntgrootte = aantal tracks",
        x = "Toonsoort", y = "Gem. Tempo (BPM)",
        color = "Modus", size = "# Tracks") +
   theme_minimal(base_size = 12) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(legend.position = "top")
+```
+
+# Tempo & Ritme
+
+## Column {width=50%}
+
+### Row
+
+#### Tempo-histogram (detail)
+
+```{r tempo-hist-detail, fig.height=4}
+ggplot(corpus, aes(x = Tempo, fill = type)) +
+  geom_histogram(binwidth = 5, position = "identity", alpha = 0.65) +
+  scale_fill_manual(values = c("Opening" = "#e63946", "Ending" = "#457b9d")) +
+  labs(title = "Tempo-histogram  (5 BPM bins)",
+       subtitle = "Openings geconcentreerd rond 140–180 BPM  |  N = 257 tracks",
+       x = "Tempo (BPM)", y = "Aantal tracks", fill = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "top")
+```
+
+### Row
+
+#### Tempo vs Danceability
+
+```{r tempo-dance, fig.height=4}
+ggplot(corpus, aes(x = Tempo, y = Danceability, color = type)) +
+  geom_point(alpha = 0.45, size = 2) +
+  geom_smooth(method = "loess", se = TRUE, linewidth = 1) +
+  scale_color_manual(values = c("Opening" = "#e63946", "Ending" = "#457b9d")) +
+  labs(title = "Tempo vs Danceability",
+       subtitle = "Hogere BPM betekent niet altijd meer dansbaar",
+       x = "Tempo (BPM)", y = "Danceability", color = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "top")
+```
+
+## Column {width=50%}
+
+### Row {.tabset}
+
+#### Energie-verloop Opening
+
+```{r tempogram-opening, fig.height=4}
+make_tempogram(opening_chroma,
+  "Energie-verloop: Just Awake Opening (191 BPM)")
+```
+
+Werkelijke chroma-energie per tijdsframe uit **Sonic Visualiser**. Je ziet de intro (0–20s) rustig opbouwen, gevolgd door de agressieve body met hoge constante energie, en een breakdown rond ~100s.
+
+#### Energie-verloop Ending
+
+```{r tempogram-ending, fig.height=4}
+make_tempogram(ending_chroma,
+  "Energie-verloop: Just Awake Ending (95.5 BPM)")
+```
+
+Dezelfde structuur, maar twee keer zo langzaam. De intro duurt langer (~40s), de breakdown is duidelijker gespreid. Dit verklaart waarom de ending **rustiger aanvoelt** ondanks dezelfde akkoorden.
+
+#### Opening vs Ending (genormaliseerd)
+
+```{r tempogram-compare, fig.height=4}
+op_e <- opening_chroma %>%
+  mutate(energy = rowSums(across(C:B)),
+         track = "Opening (191 BPM)",
+         Time_norm = Time / max(Time))
+
+en_e <- ending_chroma %>%
+  mutate(energy = rowSums(across(C:B)),
+         track = "Ending (95.5 BPM)",
+         Time_norm = Time / max(Time))
+
+bind_rows(op_e, en_e) %>%
+  group_by(track) %>%
+  mutate(smooth = stats::filter(energy,
+                                 rep(1/200, 200),
+                                 sides = 2) %>% as.numeric()) %>%
+  ungroup() %>%
+  ggplot(aes(x = Time_norm, y = smooth, color = track)) +
+  geom_line(linewidth = 1, na.rm = TRUE) +
+  scale_color_manual(values = c("Opening (191 BPM)" = "#e63946",
+                                "Ending (95.5 BPM)"  = "#457b9d")) +
+  labs(title = "Opening vs Ending: energie-verloop (genormaliseerd)",
+       subtitle = "X-as = relatieve positie in het nummer (0 = begin, 1 = eind)",
+       x = "Relatieve positie", y = "Chroma-energie", color = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "top")
 ```
 
 # Chromagrammen
 
-## Column {width=50%}
+## Column {width=55%}
 
-### Row
+### Row {.tabset}
 
-#### Just Awake – Opening (191 BPM)
+#### Opening (191 BPM)
 
-```{r chroma-opening, fig.height=4, fig.width=9}
+```{r chroma-opening, fig.height=4, fig.width=10}
 make_chromagram(opening_chroma,
   "Chromagram: Just Awake – Opening (191 BPM)")
 ```
 
-**Wat je hoort:** De opening-versie is rauwe metalcore met blast-beats en screaming vocals op 191 BPM. De dominante toonklassen **C, G# en D#** zijn duidelijk zichtbaar als heldere horizontale banden. De energie is constant hoog – er is weinig rust.
+#### Ending (95.5 BPM)
 
-### Row
-
-#### Just Awake – Ending (95.5 BPM)
-
-```{r chroma-ending, fig.height=4, fig.width=9}
+```{r chroma-ending, fig.height=4, fig.width=10}
 make_chromagram(ending_chroma,
   "Chromagram: Just Awake – Ending (95.5 BPM)")
 ```
 
-**Wat je hoort:** Exact hetzelfde nummer, maar op precies de helft van het tempo – rustiger, melodieuzer, meer geschikt als outro. De chromagram toont **dezelfde toonklassen** (C, G#, D#), maar de tijdas is uitgerekt: elke sectie duurt twee keer zo lang.
-
-## Column {width=50%}
+## Column {width=45%}
 
 ### Row
 
-#### Vergelijking Opening vs Ending
+#### Analyse
 
-De twee chromagrammen bewijzen iets muzikaal interessants: **de harmonische structuur is identiek**, alleen de tijdsschaal verschilt. Dit is geen remix of cover – het is letterlijk hetzelfde akkoordenschema op half tempo.
+**"Just Awake" – Fear, and Loathing in Las Vegas**
 
-Kijk naar de horizontale banden:
+| Versie | BPM | Playlist |
+|--------|-----|---------|
+| Opening | 191 | Anime Intros |
+| Ending | 95.5 | Anime Endings |
 
-| Toonklasse | Rol in het nummer |
-|-----------|------------------|
-| **C** | Grondtoon – sterk aanwezig in refrein |
-| **G#** | Kwinte – geeft de "zware" sound |
-| **D#** | Kleine terts – typisch voor metalcore |
+Gemaakt met **Sonic Visualiser NNLS Chroma** — echte audio-analyse.
 
-De combinatie C – D# – G# vormt een **c-mineur drieklank** – hard, donker, krachtig. Precies wat je verwacht van Fear, and Loathing in Las Vegas.
+**Dominante toonklassen:** C · G# · D#
 
-In de ending-versie zie je ook meer **geleidelijke overgangen** tussen toonklassen (de banden zijn zachter), terwijl de opening scherpe, abrupte wissels heeft. Dit reflecteert het hogere tempo en de agressievere speelstijl.
+Samen vormen ze een **c-mineur drieklank** — hard, donker, krachtig. Typisch voor metalcore.
 
-# Zelfgelijkenis (SSM)
+**Wat je hoort vs wat je ziet:**
+
+- *Opening*: scherpe, abrupte wissels — hoge energie, weinig rust
+- *Ending*: zachtere overgangen — zelfde harmoniek, rustiger gespeeld
+- Tijdas ending is precies **twee keer zo lang**
+
+# Zelfgelijkenis
 
 ## Column {width=50%}
 
@@ -304,7 +429,7 @@ make_chroma_ssm(opening_chroma,
   "Chroma SSM: Just Awake Opening (191 BPM)")
 ```
 
-**Wat je ziet:** De diagonale blokken tonen **terugkerende secties** – coupletten en refreinen die harmonisch op elkaar lijken. De blokken zijn compact (kort durend) door het hoge tempo.
+Diagonale blokken = terugkerende secties (coupletten, refreinen). Blokken zijn **compact** door het hoge tempo.
 
 ## Column {width=50%}
 
@@ -317,6 +442,4 @@ make_chroma_ssm(ending_chroma,
   "Chroma SSM: Just Awake Ending (95.5 BPM)")
 ```
 
-**Wat je ziet:** Dezelfde structuur als de opening, maar de blokken zijn **uitgerekt** over een grotere tijdspanne. De SSM bevestigt dat het dezelfde compositie is: identieke patroonvolgorde, dubbele tijdsduur per sectie.
-
-De off-diagonal blokken (lichte vlakken weg van de diagonaal) laten zien **welke secties harmonisch op elkaar lijken** – bijvoorbeeld het eerste couplet op het derde couplet. Dit patroon is zichtbaar in beide versies op exact dezelfde posities in de structuur.
+Dezelfde blokstructuur, maar **uitgerekt** over dubbele tijd. Off-diagonale lichte vlakken tonen harmonisch gelijkende secties op exact dezelfde structuurposities als in de opening.
