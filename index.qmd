@@ -443,3 +443,119 @@ make_chroma_ssm(ending_chroma,
 ```
 
 Dezelfde blokstructuur, maar **uitgerekt** over dubbele tijd. Off-diagonale lichte vlakken tonen harmonisch gelijkende secties op exact dezelfde structuurposities als in de opening.
+
+# Classificatie (Week 12)
+
+## Column {width=35%}
+
+### Row
+
+#### Waarom deze optie?
+
+Voor deze opdracht zijn er twee routes:
+
+1. **Classifier/regression** met accuracy/confusion matrix
+2. **Hiërarchische clustering** met dendrogram
+
+Ik kies **classifier** als hoofdoptie, omdat dit corpus al een duidelijk label heeft (`Opening` vs `Ending`). Daardoor kun je objectief evalueren met accuracy en confusion matrix, én direct laten zien of feature selection helpt.
+
+Clustering blijft nuttig als verkenning, maar zonder labels is evaluatie minder direct.
+
+## Column {width=65%}
+
+### Row {.tabset}
+
+#### Baseline model
+
+```{r clf-baseline, fig.height=4}
+set.seed(2026)
+
+open_idx <- which(corpus$type == "Opening")
+end_idx  <- which(corpus$type == "Ending")
+
+train_idx <- c(
+  sample(open_idx, floor(0.8 * length(open_idx))),
+  sample(end_idx,  floor(0.8 * length(end_idx)))
+)
+
+train_df <- corpus[train_idx, ]
+test_df  <- corpus[-train_idx, ]
+
+train_df$type <- factor(train_df$type, levels = c("Ending", "Opening"))
+test_df$type  <- factor(test_df$type,  levels = c("Ending", "Opening"))
+
+model_baseline <- glm(
+  type ~ Energy + Valence + Tempo + Loudness + Danceability + Key + Mode + duration_s,
+  data = train_df,
+  family = binomial
+)
+
+pred_prob_baseline <- predict(model_baseline, newdata = test_df, type = "response")
+pred_cls_baseline  <- if_else(pred_prob_baseline >= 0.5, "Opening", "Ending") %>%
+  factor(levels = c("Ending", "Opening"))
+
+cm_baseline  <- table(Actual = test_df$type, Predicted = pred_cls_baseline)
+acc_baseline <- mean(pred_cls_baseline == test_df$type)
+
+as.data.frame(cm_baseline) %>%
+  ggplot(aes(x = Predicted, y = Actual, fill = Freq)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = Freq), color = "white", fontface = "bold", size = 5) +
+  scale_fill_viridis_c(option = "magma") +
+  labs(
+    title = paste0("Baseline confusion matrix | Accuracy = ", round(acc_baseline, 3)),
+    subtitle = "Model: logistic regression met alle features",
+    x = "Voorspeld", y = "Werkelijk"
+  ) +
+  theme_minimal(base_size = 12)
+```
+
+#### Verbeterd model (feature selection)
+
+```{r clf-improved, fig.height=4}
+model_step <- MASS::stepAIC(model_baseline, direction = "both", trace = FALSE)
+
+pred_prob_step <- predict(model_step, newdata = test_df, type = "response")
+pred_cls_step  <- if_else(pred_prob_step >= 0.5, "Opening", "Ending") %>%
+  factor(levels = c("Ending", "Opening"))
+
+cm_step  <- table(Actual = test_df$type, Predicted = pred_cls_step)
+acc_step <- mean(pred_cls_step == test_df$type)
+
+as.data.frame(cm_step) %>%
+  ggplot(aes(x = Predicted, y = Actual, fill = Freq)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = Freq), color = "white", fontface = "bold", size = 5) +
+  scale_fill_viridis_c(option = "plasma") +
+  labs(
+    title = paste0("Feature-selected confusion matrix | Accuracy = ", round(acc_step, 3)),
+    subtitle = paste0("Geselecteerde features: ", paste(attr(terms(model_step), "term.labels"), collapse = ", ")),
+    x = "Voorspeld", y = "Werkelijk"
+  ) +
+  theme_minimal(base_size = 12)
+```
+
+#### Vergelijking resultaten
+
+```{r clf-compare, fig.height=4}
+results_tbl <- tibble(
+  model = c("Baseline (alle features)", "Feature-selected"),
+  accuracy = c(acc_baseline, acc_step)
+)
+
+ggplot(results_tbl, aes(x = model, y = accuracy, fill = model)) +
+  geom_col(width = 0.6, alpha = 0.9) +
+  geom_text(aes(label = round(accuracy, 3)), vjust = -0.5, fontface = "bold") +
+  scale_fill_manual(values = c("Baseline (alle features)" = "#457b9d",
+                               "Feature-selected" = "#e63946")) +
+  coord_cartesian(ylim = c(0, 1)) +
+  labs(
+    title = "Accuracy vergelijking",
+    subtitle = "Test set (20%), gestratificeerde split per klasse",
+    x = NULL, y = "Accuracy"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "none")
+```
+
+De feature-selected versie laat zien of een kleinere set features even goed of beter generaliseert dan het baseline model. Dit beantwoordt direct de opdracht: **trainen, evalueren, verbeteren, opnieuw rapporteren**.
