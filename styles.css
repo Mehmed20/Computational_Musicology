@@ -1,0 +1,36 @@
+body {
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.quarto-dashboard-content h1 {
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  margin-top: 0.2rem;
+}
+
+.quarto-dashboard-content h2,
+.quarto-dashboard-content h3,
+.quarto-dashboard-content h4 {
+  font-weight: 600;
+}
+
+.card,
+.quarto-dashboard-content .panel,
+.quarto-dashboard-content .cell-output-display {
+  border-radius: 10px;
+}
+
+.table {
+  font-size: 0.95rem;
+}
+
+.quarto-dashboard-content p {
+  max-width: 85ch;
+}
+
+.quarto-dashboard-content .tab-content {
+  background: #fff;
+  border-radius: 8px;
+  padding: 0.6rem 0.6rem 0.2rem 0.6rem;
+}

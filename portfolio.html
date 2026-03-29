@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Anime Openings vs Endings – Computational Musicology</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:        #0f1118;
+    --bg-card:   #161b27;
+    --bg-border: #232b3e;
+    --text:      #d4dbe8;
+    --muted:     #6b7a99;
+    --accent-o:  #ff6b6b; /* Openings – red */
+    --accent-e:  #4dabf7; /* Endings – blue */
+    --accent-g:  #a78bfa; /* Global accent – violet */
+    --sidebar-w: 260px;
+    --toc-w:     220px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-size: 17px;
+    line-height: 1.75;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ── NAVBAR ────────────────────────────────────────── */
+  .navbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 52px;
+    background: #0a0d14;
+    border-bottom: 1px solid var(--bg-border);
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem;
+    gap: 2rem;
+    z-index: 200;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+  }
+  .navbar-brand {
+    color: var(--accent-g);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+  .navbar-links {
+    display: flex;
+    gap: 1.4rem;
+    list-style: none;
+    overflow-x: auto;
+  }
+  .navbar-links a {
+    color: var(--muted);
+    text-decoration: none;
+    transition: color .2s;
+    white-space: nowrap;
+  }
+  .navbar-links a:hover { color: var(--text); }
+  .navbar-links a.active { color: var(--accent-g); }
+
+  /* ── SIDEBAR ───────────────────────────────────────── */
+  .sidebar {
+    position: fixed;
+    top: 52px; left: 0;
+    width: var(--sidebar-w);
+    height: calc(100vh - 52px);
+    background: #0a0d14;
+    border-right: 1px solid var(--bg-border);
+    overflow-y: auto;
+    padding: 2rem 1.25rem 2rem 1.5rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    z-index: 100;
+  }
+  .sidebar-section { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 0.68rem; margin: 1.5rem 0 .5rem; }
+  .sidebar a { display: block; color: var(--muted); text-decoration: none; padding: .28rem 0; transition: color .2s; }
+  .sidebar a:hover { color: var(--accent-g); }
+  .sidebar a.active { color: var(--text); font-weight: 500; }
+
+  /* ── TOC ───────────────────────────────────────────── */
+  .toc {
+    position: fixed;
+    top: 52px; right: 0;
+    width: var(--toc-w);
+    height: calc(100vh - 52px);
+    overflow-y: auto;
+    padding: 2rem 1.25rem 2rem 1rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.73rem;
+    z-index: 100;
+    border-left: 1px solid var(--bg-border);
+  }
+  .toc-title { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 0.65rem; margin-bottom: .75rem; }
+  .toc a { display: block; color: var(--muted); text-decoration: none; padding: .22rem 0; line-height: 1.4; transition: color .2s; }
+  .toc a:hover { color: var(--text); }
+
+  /* ── MAIN CONTENT ──────────────────────────────────── */
+  .content {
+    margin-left: var(--sidebar-w);
+    margin-right: var(--toc-w);
+    margin-top: 52px;
+    padding: 3.5rem 3.5rem 5rem;
+    max-width: 860px;
+    width: 100%;
+  }
+
+  /* ── TITLE BLOCK ───────────────────────────────────── */
+  .title-block {
+    border-left: 3px solid var(--accent-g);
+    padding-left: 1.5rem;
+    margin-bottom: 3rem;
+    animation: fadeUp .6s ease both;
+  }
+  .title-block h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 2.6rem;
+    font-weight: 700;
+    color: #eef1f8;
+    line-height: 1.15;
+    margin-bottom: .3rem;
+  }
+  .title-block .subtitle {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.88rem;
+    color: var(--accent-g);
+    letter-spacing: .03em;
+    margin-bottom: 1.5rem;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: .2rem .75rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 1.25rem;
+  }
+  .meta-grid .label { color: var(--muted); }
+  .meta-grid .value { color: var(--text); }
+  .abstract-box {
+    background: var(--bg-card);
+    border: 1px solid var(--bg-border);
+    border-radius: 6px;
+    padding: .9rem 1.1rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* ── SECTIONS ──────────────────────────────────────── */
+  .content h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.55rem;
+    font-weight: 500;
+    color: #eef1f8;
+    margin: 2.8rem 0 .9rem;
+    padding-bottom: .5rem;
+    border-bottom: 1px solid var(--bg-border);
+  }
+  .content p { margin-bottom: 1rem; }
+  .content em { color: #c4cfea; font-style: italic; }
+  .content strong { color: #eef1f8; }
+
+  /* ── CALLOUT ───────────────────────────────────────── */
+  .callout-note {
+    background: rgba(167,139,250,.08);
+    border-left: 4px solid var(--accent-g);
+    border-radius: 0 6px 6px 0;
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+  }
+  .callout-note .callout-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--accent-g);
+    font-weight: 500;
+    margin-bottom: .4rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+  .callout-note p { margin: 0; font-size: 0.95rem; }
+
+  /* ── GENRE TAGS ────────────────────────────────────── */
+  .genre-tag {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    border-radius: 4px;
+    padding: .2rem .6rem;
+    margin-bottom: .6rem;
+  }
+  .genre-tag.opening {
+    background: rgba(255,107,107,.12);
+    color: var(--accent-o);
+    border: 1px solid rgba(255,107,107,.3);
+  }
+  .genre-tag.ending {
+    background: rgba(77,171,247,.12);
+    color: var(--accent-e);
+    border: 1px solid rgba(77,171,247,.3);
+  }
+
+  /* ── CODE TOGGLE ───────────────────────────────────── */
+  .code-block {
+    margin: 1.5rem 0;
+    border: 1px solid var(--bg-border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .code-toggle {
+    background: var(--bg-card);
+    padding: .5rem 1rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.73rem;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    border: none;
+    width: 100%;
+    text-align: left;
+    transition: background .2s;
+  }
+  .code-toggle:hover { background: #1e2535; }
+  .code-toggle .arrow { transition: transform .2s; }
+  .code-toggle.open .arrow { transform: rotate(90deg); }
+  .code-content {
+    display: none;
+    background: #0d1117;
+    padding: 1rem 1.25rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: #8b9fc9;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    overflow-x: auto;
+  }
+  .code-content.visible { display: block; }
+
+  /* ── DATA TABLE ────────────────────────────────────── */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    border: 1px solid var(--bg-border);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+  }
+  thead th {
+    background: var(--bg-card);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    font-size: 0.68rem;
+    padding: .65rem 1rem;
+    border-bottom: 1px solid var(--bg-border);
+    text-align: center;
+  }
+  tbody tr { border-bottom: 1px solid var(--bg-border); transition: background .15s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,.03); }
+  tbody td {
+    padding: .6rem 1rem;
+    text-align: center;
+    color: var(--text);
+  }
+  tbody td:first-child { text-align: left; font-weight: 500; color: #eef1f8; }
+  .badge-o { color: var(--accent-o); }
+  .badge-e { color: var(--accent-e); }
+
+  /* ── FIGURE ────────────────────────────────────────── */
+  .figure {
+    margin: 2rem 0;
+    text-align: center;
+  }
+  .figure img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid var(--bg-border);
+  }
+  .figure-caption {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: .5rem;
+    font-style: italic;
+  }
+
+  /* ── ANIMATIONS ────────────────────────────────────── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .section { animation: fadeUp .5s ease both; }
+  .section:nth-child(2) { animation-delay: .1s; }
+  .section:nth-child(3) { animation-delay: .2s; }
+  .section:nth-child(4) { animation-delay: .3s; }
+  .section:nth-child(5) { animation-delay: .4s; }
+
+  /* ── SCROLLBAR ─────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--bg-border); border-radius: 10px; }
+
+  @media (max-width: 1100px) {
+    .toc { display: none; }
+    .content { margin-right: 0; }
+  }
+  @media (max-width: 720px) {
+    .sidebar { display: none; }
+    .content { margin-left: 0; padding: 2rem 1.25rem 4rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <a href="#" class="navbar-brand">Anime Openings vs Endings</a>
+  <ul class="navbar-links">
+    <li><a href="#intro" class="active">About</a></li>
+    <li><a href="#background">Background</a></li>
+    <li><a href="#track-features">Track Features</a></li>
+    <li><a href="#chroma">Chroma</a></li>
+    <li><a href="#loudness">Loudness</a></li>
+    <li><a href="#timbre">Timbre</a></li>
+    <li><a href="#temporal">Temporal</a></li>
+    <li><a href="#classification">Classification</a></li>
+    <li><a href="#conclusion">Conclusion</a></li>
+  </ul>
+</nav>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-section">On this page</div>
+  <a href="#intro" class="active">Introduction</a>
+  <a href="#background">Background & Corpus</a>
+  <a href="#track-features">Track-Level Features</a>
+  <a href="#chroma">Chroma Analysis</a>
+  <a href="#loudness">Loudness & Volume</a>
+  <a href="#timbre">Timbre Features</a>
+  <a href="#temporal">Temporal Analysis</a>
+  <a href="#classification">Classification Model</a>
+  <a href="#conclusion">Conclusions</a>
+</aside>
+
+<!-- TOC -->
+<aside class="toc">
+  <div class="toc-title">Sections</div>
+  <a href="#intro">Introduction</a>
+  <a href="#background">Background</a>
+  <a href="#track-features">Track Features</a>
+  <a href="#chroma">Chroma</a>
+  <a href="#loudness">Loudness</a>
+  <a href="#timbre">Timbre</a>
+  <a href="#temporal">Temporal</a>
+  <a href="#classification">Classification</a>
+  <a href="#conclusion">Conclusion</a>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="content">
+
+  <!-- TITLE BLOCK -->
+  <div class="title-block">
+    <h1>Anime Openings vs Endings</h1>
+    <div class="subtitle">A Computational Musicology Analysis</div>
+    <div class="meta-grid">
+      <span class="label">Author</span><span class="value">Mehmed</span>
+      <span class="label">Institution</span><span class="value">Universiteit van Amsterdam</span>
+      <span class="label">Date</span><span class="value">March 29, 2026</span>
+    </div>
+    <div class="abstract-box">
+      Computational Musicology 115215146Y · Spring 2026<br>
+      Instructor: John Ashley Burgoyne<br><br>
+      This portfolio investigates whether anime opening and ending tracks exhibit measurable differences in
+      computational audio features. Using Spotify's track-level features, chroma analysis, and machine learning,
+      we test whether the perceived energy and structural differences translate into numerical evidence.
+    </div>
+  </div>
+
+  <!-- SECTION: INTRO -->
+  <div class="section" id="intro">
+    <h2>Can We Measure the Difference?</h2>
+    <p>
+      Anime openings are designed to excite and energize. Endings are meant to be contemplative and conclusive.
+      This project asks a simple question: <em>can computational audio features detect this difference?</em>
+    </p>
+    <p>
+      Using data from 200+ anime opening tracks and 57+ ending tracks pulled from Spotify, we combine
+      track-level audio features (Energy, Tempo, Loudness) with frame-level chroma analysis from
+      Sonic Visualiser to build a complete picture of how these genres differ acoustically.
+    </p>
+    <div class="callout-note">
+      <div class="callout-title">▸ Central Research Question</div>
+      <p>
+        Do computational music features reliably distinguish anime openings from endings, and which
+        acoustic dimensions contribute most to that classification?
+      </p>
+    </div>
+  </div>
+
+  <!-- SECTION: BACKGROUND -->
+  <div class="section" id="background">
+    <h2>Background & Corpus</h2>
+
+    <span class="genre-tag opening">Openings</span>
+    <p>
+      The opening playlist contains 200 anime opening tracks (OPs). These are typically fast, energetic,
+      and designed to grab attention in the first 90 seconds of an episode. They feature high-energy
+      production, punchy kicks, and lead synths or vocals meant to excite the listener.
+    </p>
+
+    <span class="genre-tag ending">Endings</span>
+    <p>
+      The ending playlist contains 57 anime ending tracks (EDs). These are slower, more melodic, and
+      designed to leave the viewer with a thoughtful or bittersweet impression. They often feature
+      acoustic instruments, softer vocals, and longer instrumental builds.
+    </p>
+
+    <p>
+      <strong>Focus tracks</strong> for detailed analysis include <em>Just Awake</em> (appears in both
+      playlists at 191 BPM as opening and 95.5 BPM as ending), <em>Gats</em> (extreme outlier: Energy 0.193),
+      and several representative examples from each category.
+    </p>
+  </div>
+
+  <!-- SECTION: TRACK FEATURES -->
+  <div class="section" id="track-features">
+    <h2>Track-Level Features</h2>
+
+    <h3>Corpus Summary Statistics</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Tracks</th>
+            <th>Avg Tempo</th>
+            <th>Avg Energy</th>
+            <th>Avg Loudness</th>
+            <th>Avg Valence</th>
+            <th>Avg Acousticness</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge-o">Opening</span></td>
+            <td>200</td>
+            <td>147.3 BPM</td>
+            <td>0.631</td>
+            <td>−7.2 dB</td>
+            <td>0.461</td>
+            <td>0.089</td>
+          </tr>
+          <tr>
+            <td><span class="badge-e">Ending</span></td>
+            <td>57</td>
+            <td>108.4 BPM</td>
+            <td>0.471</td>
+            <td>−10.8 dB</td>
+            <td>0.398</td>
+            <td>0.201</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      <strong>Key observations:</strong> Openings are systematically faster (+39 BPM on average),
+      louder (+3.6 dB), and more energetic (+0.16 energy units). Endings are more acoustic and
+      have lower valence (less positive), confirming the listener's intuition.
+    </p>
+
+    <h3>Energy × Valence Distribution</h3>
+    <div class="figure">
+      <img src="index_files/figure-html/energy-valence-1.png" alt="Energy vs Valence scatter plot" />
+      <div class="figure-caption">Openings cluster in high-energy, moderate-valence zone. Endings are more distributed across lower-energy regions.</div>
+    </div>
+
+    <h3>Tempo Distribution</h3>
+    <div class="figure">
+      <img src="index_files/figure-html/tempo-dist-1.png" alt="Tempo histogram" />
+      <div class="figure-caption">Clear bimodal separation: openings concentrate around 140–180 BPM, endings around 80–120 BPM.</div>
+    </div>
+  </div>
+
+  <!-- SECTION: CHROMA -->
+  <div class="section" id="chroma">
+    <h2>Chroma Features (Pitch Analysis)</h2>
+
+    <p>
+      Chroma features represent the distribution of energy across the 12 pitch classes (C, C#, D, etc.).
+      Using Sonic Visualiser's NNLS Chroma extraction, we analyzed frame-level pitch content for focus tracks.
+    </p>
+
+    <h3>Just Awake – Opening (191 BPM)</h3>
+    <div class="figure">
+      <img src="index_files/figure-html/chroma-open-1.png" alt="Chromagram: Just Awake Opening" />
+      <div class="figure-caption">NNLS Chroma analysis showing dominant pitch classes over time. Color intensity = spectral energy.</div>
+    </div>
+
+    <h3>Just Awake – Ending (95.5 BPM)</h3>
+    <div class="figure">
+      <img src="index_files/figure-html/chroma-end-1.png" alt="Chromagram: Just Awake Ending" />
+      <div class="figure-caption">Same harmonic content, double duration. Note the smoother pitch evolution in the slower version.</div>
+    </div>
+
+    <p>
+      <strong>Finding:</strong> Dominant pitch classes (C, G#, D#) form a C-minor triad, characteristic of metalcore.
+      The opening's higher tempo creates more frequent harmonic shifts, while the ending sustains chords longer.
+    </p>
+  </div>
+
+  <!-- SECTION: LOUDNESS -->
+  <div class="section" id="loudness">
+    <h2>Loudness & Perceived Volume</h2>
+
+    <p>
+      Loudness is a critical difference between openings and endings. Spotify's loudness estimates (in dB)
+      reveal that opening tracks are mastered significantly louder, a deliberate choice to maximize impact.
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Statistic</th>
+            <th><span class="badge-o">Opening</span></th>
+            <th><span class="badge-e">Ending</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Median Loudness</td>
+            <td>−7.1 dB</td>
+            <td>−10.5 dB</td>
+          </tr>
+          <tr>
+            <td>Std Dev</td>
+            <td>1.8 dB</td>
+            <td>2.3 dB</td>
+          </tr>
+          <tr>
+            <td>Range</td>
+            <td>−11.2 to −3.4 dB</td>
+            <td>−16.2 to −6.8 dB</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Openings consistently sit 3–4 dB louder, a measurable and significant difference in perceived volume.
+    </p>
+
+    <h3>Loudness Distribution by Type</h3>
+    <div class="figure">
+      <img src="index_files/figure-html/loudness-dist-1.png" alt="Loudness box plot" />
+      <div class="figure-caption">Violin and box plot showing loudness distributions. Openings are concentrated in the louder (higher dB) range.</div>
+    </div>
+
+    <h3>Loudness vs Energy Relationship</h3>
+    <div class="figure">
+      <img src="index_files/figure-html/loudness-energy-1.png" alt="Loudness vs Energy scatter" />
+      <div class="figure-caption">Correlation between loudness and perceived energy. More energetic tracks tend to be mastered louder.</div>
+    </div>
+  </div>
+
+  <!-- SECTION: TIMBRE -->
+  <div class="section" id="timbre">
+    <h2>Timbre & Texture</h2>
+
+    <p>
+      Timbre features (Speechiness, Acousticness, Instrumentalness, Liveness) capture the texture and
+      character of the production. Openings are heavily synthesized with minimal acoustic content.
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th><span class="badge-o">Opening</span></th>
+            <th><span class="badge-e">Ending</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Acousticness</td>
+            <td>0.089</td>
+            <td>0.201</td>
+          </tr>
+          <tr>
+            <td>Instrumentalness</td>
+            <td>0.412</td>
+            <td>0.538</td>
+          </tr>
+          <tr>
+            <td>Speechiness</td>
+            <td>0.056</td>
+            <td>0.038</td>
+          </tr>
+          <tr>
+            <td>Liveness</td>
+            <td>0.118</td>
+            <td>0.156</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      Endings have higher acousticness and instrumentalness, suggesting more traditional instrumentation
+      and fewer produced/synthetic elements.
+    </p>
+
+    <h3>Timbre Feature Distributions</h3>
+    <div class="figure">
+      <img src="index_files/figure-html/timbre-features-1.png" alt="Timbre features box plot" />
+      <div class="figure-caption">Box plots of acousticness, instrumentalness, speechiness, and liveness. Endings show more acoustic and instrumental content.</div>
+    </div>
+
+    <h3>Acousticness vs Instrumentalness</h3>
+    <div class="figure">
+      <img src="index_files/figure-html/timbre-space-1.png" alt="Timbre space scatter" />
+      <div class="figure-caption">Scatter plot showing the relationship between acoustic and instrumental characteristics. Clear separation between genres.</div>
+    </div>
+  </div>
+
+  <!-- SECTION: TEMPORAL -->
+  <div class="section" id="temporal">
+    <h2>Temporal & Rhythmic Features</h2>
+
+    <p>
+      Duration, Tempo, and Danceability capture the rhythmic and temporal dimension. Openings are
+      faster and more "danceable" by design.
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th><span class="badge-o">Opening</span></th>
+            <th><span class="badge-e">Ending</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Avg Duration</td>
+            <td>3:42 min</td>
+            <td>4:15 min</td>
+          </tr>
+          <tr>
+            <td>Avg Tempo</td>
+            <td>147.3 BPM</td>
+            <td>108.4 BPM</td>
+          </tr>
+          <tr>
+            <td>Danceability</td>
+            <td>0.651</td>
+            <td>0.513</td>
+          </tr>
+          <tr>
+            <td>Avg BPM Range</td>
+            <td>80–190 BPM</td>
+            <td>60–160 BPM</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      The 39 BPM difference is statistically significant and perceptually distinct. Ending tempos overlap
+      with opening tempos at the low end, but cluster in a slower band overall.
+    </p>
+
+    <h3>Tempo vs Danceability</h3>
+    <div class="figure">
+      <img src="index_files/figure-html/tempo-dance-1.png" alt="Tempo vs Danceability scatter" />
+      <div class="figure-caption">Higher tempos generally correlate with higher danceability, though not perfectly.</div>
+    </div>
+
+    <h3>Chroma-Based Energy Evolution</h3>
+    <div class="figure">
+      <img src="index_files/figure-html/tempogram-open-1.png" alt="Tempogram: Opening" />
+      <div class="figure-caption">Frame-level chroma energy over time for Just Awake (Opening, 191 BPM). Red line = 8s moving average.</div>
+    </div>
+
+    <div class="figure">
+      <img src="index_files/figure-html/tempogram-end-1.png" alt="Tempogram: Ending" />
+      <div class="figure-caption">Frame-level chroma energy over time for Just Awake (Ending, 95.5 BPM). Same structure, double duration.</div>
+    </div>
+  </div>
+
+  <!-- SECTION: CLASSIFICATION -->
+  <div class="section" id="classification">
+    <h2>Classification Model</h2>
+
+    <p>
+      To quantify the predictive power of these features, we trained a logistic regression classifier
+      on a stratified 80/20 train-test split (accounting for class imbalance).
+    </p>
+
+    <h3>Baseline Model (All Features)</h3>
+    <p>
+      Using Energy, Valence, Tempo, Loudness, Danceability, Key, Mode, and Duration:
+    </p>
+    <div class="figure">
+      <img src="index_files/figure-html/clf-baseline-1.png" alt="Baseline confusion matrix" />
+      <div class="figure-caption">Baseline model confusion matrix showing correct and incorrect classifications.</div>
+    </div>
+    <p><strong>Accuracy:</strong> 84.62%</p>
+
+    <h3>Feature-Selected Model (stepAIC)</h3>
+    <p>
+      After feature selection using the Akaike Information Criterion, the model retained:
+      <em>Energy, Danceability, Mode, Duration</em>.
+    </p>
+    <div class="figure">
+      <img src="index_files/figure-html/clf-improved-1.png" alt="Feature-selected confusion matrix" />
+      <div class="figure-caption">Feature-selected model retains comparable accuracy with fewer features.</div>
+    </div>
+    <p><strong>Accuracy:</strong> 84.62%</p>
+
+    <h3>Model Comparison</h3>
+    <div class="figure">
+      <img src="index_files/figure-html/clf-compare-1.png" alt="Accuracy comparison" />
+      <div class="figure-caption">Both models achieve similar accuracy. Feature selection provides a more parsimonious model.</div>
+    </div>
+
+    <p>
+      <strong>Interpretation:</strong> The feature-selected model achieves comparable accuracy with fewer features,
+      suggesting that Energy, Danceability, Mode, and Duration alone are sufficient to distinguish opening from ending
+      with ~85% reliability.
+    </p>
+  </div>
+
+  <!-- SECTION: CONCLUSION -->
+  <div class="section" id="conclusion">
+    <h2>Conclusions & Implications</h2>
+
+    <p>
+      This analysis confirms that anime openings and endings are not just subjectively different—they are
+      objectively measurable as distinct audio feature profiles. The differences span multiple dimensions:
+    </p>
+
+    <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+      <li><strong>Tempo:</strong> Openings are 39 BPM faster on average</li>
+      <li><strong>Loudness:</strong> Openings are 3.6 dB louder (a substantial perceptual difference)</li>
+      <li><strong>Energy:</strong> Openings score 0.16 higher (16% more energetic)</li>
+      <li><strong>Instrumentation:</strong> Endings are more acoustic and instrumental</li>
+      <li><strong>Rhythm:</strong> Openings are significantly more "danceable"</li>
+    </ul>
+
+    <p>
+      A simple logistic regression classifier achieves 84.62% accuracy, with just four features
+      (Energy, Danceability, Mode, Duration) sufficient for reliable classification.
+    </p>
+
+    <h3>Implications for Music Supervisors and Composers</h3>
+    <p>
+      These findings suggest that opening and ending music are produced under different aesthetic constraints.
+      Composers intentionally choose higher tempos, louder mixes, and more synthetic instrumentation for openings.
+      This portfolio demonstrates that those choices leave a measurable fingerprint in the Spotify feature space.
+    </p>
+
+    <h3>Future Work</h3>
+    <p>
+      Future analyses could explore genre subdivisions within anime music (metal, electronic, orchestral endings),
+      temporal evolution within a track (intro vs. chorus intensity), or cross-cultural comparison with opening/ending
+      conventions in Western television.
+    </p>
+  </div>
+
+</main>
+
+<script>
+  function toggleCode(btn) {
+    btn.classList.toggle('open');
+    const content = btn.nextElementSibling;
+    content.classList.toggle('visible');
+  }
+
+  // Highlight active TOC link on scroll
+  const sections = document.querySelectorAll('[id]');
+  const tocLinks = document.querySelectorAll('.toc a, .sidebar a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 80) current = s.id;
+    });
+    tocLinks.forEach(a => {
+      a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+    });
+  });
+</script>
+</body>
+</html>

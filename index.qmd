@@ -1,0 +1,527 @@
+---
+title: "Anime Openings vs Endings: A Computational Musicology Analysis"
+author: "Mehmed"
+date: "March 2026"
+format:
+  html:
+    theme: darkly
+    css: styles.css
+    toc: true
+    toc-location: left
+    smooth-scroll: true
+execute:
+  warning: false
+  message: false
+---
+
+# Introduction
+
+This portfolio analyzes computational music features from anime opening and ending tracks. The central question is: **Can we reliably distinguish anime openings from endings using Spotify audio features and chroma analysis?**
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggrepel)
+library(viridis)
+library(compmus)
+
+pitch_levels <- rev(c("C","C#","D","D#","E","F","F#","G","G#","A","A#","B"))
+
+openings <- read_csv("Anime_Intros_THAT_GO_HARD.csv", show_col_types = FALSE) %>%
+  select(`Track Name`, `Artist Name(s)`, Genres, Popularity,
+    Energy, Valence, Key, Mode, Tempo, Loudness,
+    Danceability, Speechiness, Acousticness,
+    Instrumentalness, Liveness, `Duration (ms)`) %>%
+  mutate(type = "Opening")
+
+endings <- read_csv("Anime_Endings.csv", show_col_types = FALSE) %>%
+  select(`Track Name`, `Artist Name(s)`, Genres, Popularity,
+    Energy, Valence, Key, Mode, Tempo, Loudness,
+    Danceability, Speechiness, Acousticness,
+    Instrumentalness, Liveness, `Duration (ms)`) %>%
+  mutate(type = "Ending")
+
+corpus <- bind_rows(openings, endings) %>%
+  mutate(
+    z_energy   = as.numeric(scale(Energy)),
+    z_valence  = as.numeric(scale(Valence)),
+    z_tempo    = as.numeric(scale(Tempo)),
+    z_loudness = as.numeric(scale(Loudness)),
+    outlier_score = sqrt(z_energy^2 + z_valence^2 + z_tempo^2 + z_loudness^2),
+    pitch_class = case_when(
+      Key == 0  ~ "C",   Key == 1  ~ "C#", Key == 2  ~ "D",
+      Key == 3  ~ "D#",  Key == 4  ~ "E",  Key == 5  ~ "F",
+      Key == 6  ~ "F#",  Key == 7  ~ "G",  Key == 8  ~ "G#",
+      Key == 9  ~ "A",   Key == 10 ~ "A#", Key == 11 ~ "B",
+      TRUE ~ "?"
+    ),
+    pitch_class = factor(pitch_class,
+      levels = c("C","C#","D","D#","E","F","F#","G","G#","A","A#","B","?")),
+    mode_label  = if_else(Mode == 1, "Major", "Minor"),
+    duration_s  = `Duration (ms)` / 1000,
+    duration_min = duration_s / 60,
+    energy_loudness_ratio = Energy / abs(Loudness),
+    timbre_brightness_proxy = (1 - Acousticness) * (1 - Instrumentalness) * (1 - Liveness)
+  )
+
+focus_tracks <- corpus %>%
+  filter(`Track Name` %in% c("Just Awake", "Gats")) %>%
+  mutate(track_focus = paste0(`Track Name`, " (", type, ")"))
+
+read_sv_chroma <- function(path, frame_dur = NULL) {
+  first_line <- readLines(path, n = 1)
+  has_header <- grepl("TIME|Time|time", first_line)
+  if (has_header) {
+    df <- read.csv(path, header = TRUE, check.names = FALSE)
+    colnames(df)[1] <- "Time"
+    df
+  } else {
+    fd <- if (is.null(frame_dur)) 0.046439909 else frame_dur
+    read.csv(path, header = FALSE, check.names = FALSE) %>%
+      mutate(Time = (row_number() - 1) * fd) %>%
+      select(Time, V1:V12) %>%
+      rename(C=V1, `C#`=V2, D=V3, `D#`=V4, E=V5, F=V6,
+             `F#`=V7, G=V8, `G#`=V9, A=V10, `A#`=V11, B=V12)
+  }
+}
+
+opening_chroma <- read_sv_chroma("opening.csv")
+ending_chroma  <- read_sv_chroma("ending.csv")
+
+make_chromagram <- function(df, title) {
+  df %>%
+    pivot_longer(-Time, names_to = "Pitch", values_to = "Intensity") %>%
+    mutate(Pitch = factor(Pitch, levels = pitch_levels)) %>%
+    ggplot(aes(x = Time, y = Pitch, fill = Intensity)) +
+    geom_tile() +
+    scale_fill_viridis_c(option = "magma", name = "Intensity") +
+    labs(title = title, x = "Time (seconds)", y = NULL) +
+    theme_classic(base_size = 11) +
+    theme(axis.text.y = element_text(face = "bold"),
+          plot.title = element_text(size = 11, face = "bold"))
+}
+
+make_chroma_ssm <- function(df, title, every_nth = 10L) {
+  df_sub <- df %>%
+    filter(row_number() %% every_nth == 0L) %>%
+    rowwise() %>%
+    mutate(pitches = list(c_across(C:B))) %>%
+    ungroup() %>%
+    mutate(duration = every_nth * 0.046439909, start = Time)
+  df_sub %>%
+    mutate(pitches = map(pitches, compmus_normalise, "manhattan")) %>%
+    compmus_self_similarity(pitches, "aitchison") %>%
+    ggplot(aes(x = xstart + xduration / 2, width = every_nth * xduration,
+               y = ystart + yduration / 2, height = every_nth * yduration,
+               fill = d)) +
+    geom_tile() +
+    coord_fixed() +
+    scale_fill_viridis_c(guide = "none", option = "magma") +
+    theme_classic(base_size = 11) +
+    labs(title = title, x = "Time (s)", y = "Time (s)") +
+    theme(plot.title = element_text(size = 11, face = "bold"))
+}
+
+make_tempogram <- function(df, title, window_sec = 8) {
+  frame_dur <- df$Time[2] - df$Time[1]
+  window_frames <- round(window_sec / frame_dur)
+  df %>%
+    mutate(energy = rowSums(across(C:B))) %>%
+    select(Time, energy) %>%
+    mutate(smooth = stats::filter(energy,
+                                   rep(1/window_frames, window_frames),
+                                   sides = 2) %>% as.numeric()) %>%
+    ggplot(aes(x = Time)) +
+    geom_line(aes(y = energy), color = "grey75", linewidth = 0.3, alpha = 0.8) +
+    geom_line(aes(y = smooth), color = "#e63946", linewidth = 1, na.rm = TRUE) +
+    labs(title = title,
+         subtitle = "Grey = per frame  |  Red = 8s moving average",
+         x = "Time (seconds)", y = "Chroma energy (Sonic Visualiser)") +
+    theme_minimal(base_size = 11) +
+    theme(plot.title = element_text(size = 11, face = "bold"))
+}
+```
+
+# Background
+
+## Corpus Overview
+
+This corpus consists of two Spotify playlists:
+
+- **Anime Openings (Intros)**: 200 tracks  
+- **Anime Endings**: 57 tracks  
+- **Total**: 257 tracks
+
+Anime openings are typically fast and energetic, designed to excite viewers. Endings are slower and more melodic. This analysis uses computational features to test whether these perceived differences are measurable.
+
+## Focus Tracks
+
+For detailed chroma and structural analysis, I focus on three key tracks:
+
+1. **"Just Awake"** (Fear, and Loathing in Las Vegas) — appears as **both** opening (191 BPM) and ending (95.5 BPM)
+2. **"Gats"** — extreme outlier (Energy 0.193, Valence 0.055)
+3. **"East Bridge"** — representative opening example
+
+```{r focus-plot}
+ggplot(corpus, aes(x = Tempo, y = Energy, color = type)) +
+  geom_point(alpha = 0.35, size = 2) +
+  geom_point(data = focus_tracks, aes(x = Tempo, y = Energy),
+             color = "black", fill = "gold", shape = 21, size = 5, stroke = 1.2) +
+  geom_text_repel(data = focus_tracks,
+                  aes(label = paste0(`Track Name`, " (", type, ")")),
+                  size = 3, color = "black", max.overlaps = 20,
+                  min.segment.length = 0) +
+  scale_color_manual(values = c("Opening" = "#e63946", "Ending" = "#457b9d")) +
+  labs(title = "Focus tracks in context",
+       subtitle = "Black/gold points = selected focus tracks",
+       x = "Tempo (BPM)", y = "Energy", color = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "top")
+```
+
+# Track-Level Features
+
+## Corpus Overview
+
+```{r corpus-summary}
+corpus %>%
+  group_by(type) %>%
+  summarise(
+    n_tracks = n(),
+    mean_tempo = mean(Tempo),
+    mean_energy = mean(Energy),
+    mean_valence = mean(Valence),
+    mean_loudness = mean(Loudness),
+    mean_popularity = mean(Popularity),
+    .groups = "drop"
+  ) %>%
+  mutate(across(where(is.numeric), ~round(.x, 3))) %>%
+  knitr::kable(caption = "Corpus summary statistics")
+```
+
+## Energy × Valence Distribution
+
+Opening tracks cluster in the high-energy, moderate-valence region. Endings are more distributed across lower-energy zones.
+
+```{r energy-valence}
+ggplot(corpus, aes(x = Valence, y = Energy, color = type)) +
+  geom_vline(xintercept = median(corpus$Valence), linetype = "dashed", alpha = 0.4) +
+  geom_hline(yintercept = median(corpus$Energy), linetype = "dashed", alpha = 0.4) +
+  geom_point(alpha = 0.45, size = 2) +
+  scale_color_manual(values = c("Opening" = "#e63946", "Ending" = "#457b9d")) +
+  labs(title = "Energy × Valence Distribution",
+       subtitle = "Dashed lines = corpus medians",
+       x = "Valence", y = "Energy", color = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "top")
+```
+
+## Tempo Distribution
+
+```{r tempo-dist}
+ggplot(corpus, aes(x = Tempo, fill = type)) +
+  geom_histogram(binwidth = 8, position = "identity", alpha = 0.65) +
+  geom_vline(xintercept = 191, linetype = "dashed",
+             color = "#e63946", linewidth = 0.8) +
+  geom_vline(xintercept = 95.5, linetype = "dashed",
+             color = "#457b9d", linewidth = 0.8) +
+  annotate("text", x = 194, y = 17, label = "Just Awake Opening\n191 BPM",
+           hjust = 0, size = 2.8, color = "#e63946") +
+  annotate("text", x = 98, y = 17, label = "Just Awake Ending\n95.5 BPM",
+           hjust = 0, size = 2.8, color = "#457b9d") +
+  scale_fill_manual(values = c("Opening" = "#e63946", "Ending" = "#457b9d")) +
+  labs(title = "Tempo Distribution",
+       x = "Tempo (BPM)", y = "Count", fill = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "top")
+```
+
+# Chroma Features (Pitch)
+
+## Pitch Class Distribution
+
+Spotify's key detection reveals that anime openings and endings use distinct key profiles.
+
+```{r key-distribution}
+corpus %>%
+  filter(pitch_class != "?") %>%
+  count(pitch_class, type) %>%
+  complete(pitch_class, type, fill = list(n = 0)) %>%
+  ggplot(aes(x = pitch_class, y = n, fill = type)) +
+  geom_col(position = "dodge", alpha = 0.85, width = 0.7) +
+  scale_fill_manual(values = c("Opening" = "#e63946", "Ending" = "#457b9d")) +
+  labs(title = "Pitch Class Distribution",
+       x = "Pitch Class", y = "Count", fill = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "top")
+```
+
+## Major vs Minor: Effect on Valence
+
+```{r mode-valence}
+ggplot(corpus, aes(x = mode_label, y = Valence, fill = type)) +
+  geom_boxplot(alpha = 0.75, outlier.shape = 16, outlier.alpha = 0.4) +
+  scale_fill_manual(values = c("Opening" = "#e63946", "Ending" = "#457b9d")) +
+  labs(title = "Major vs Minor: Effect on Valence",
+       x = "Mode", y = "Valence", fill = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "top")
+```
+
+# Loudness
+
+## Track-Level Loudness
+
+Openings are systematically louder than endings, contributing to their perceived intensity.
+
+```{r loudness-dist}
+ggplot(corpus, aes(x = type, y = Loudness, fill = type)) +
+  geom_violin(alpha = 0.65, trim = FALSE) +
+  geom_boxplot(width = 0.12, fill = "white", outlier.alpha = 0.4) +
+  scale_fill_manual(values = c("Opening" = "#e63946", "Ending" = "#457b9d")) +
+  labs(title = "Loudness Distribution",
+       x = NULL, y = "Loudness (dB)", fill = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "none")
+```
+
+## Loudness vs Energy
+
+```{r loudness-energy}
+ggplot(corpus, aes(x = Loudness, y = Energy, color = type)) +
+  geom_point(alpha = 0.5, size = 2) +
+  geom_smooth(method = "lm", se = TRUE, linewidth = 1) +
+  scale_color_manual(values = c("Opening" = "#e63946", "Ending" = "#457b9d")) +
+  labs(title = "Loudness and Energy Relationship",
+       x = "Loudness (dB)", y = "Energy", color = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "top")
+```
+
+## Frame-Level Energy: "Just Awake" Opening
+
+```{r tempogram-open}
+make_tempogram(opening_chroma,
+  "Frame-level energy evolution – Just Awake Opening (191 BPM)")
+```
+
+## Frame-Level Energy: "Just Awake" Ending
+
+```{r tempogram-end}
+make_tempogram(ending_chroma,
+  "Frame-level energy evolution – Just Awake Ending (95.5 BPM)")
+```
+
+The same song structure appears in both versions. However, the opening's higher tempo creates more frequent energy fluctuations, while the ending shows longer sustained sections. This demonstrates how **tempo changes affect section perception** even with identical harmonic content.
+
+# Timbre
+
+## Timbre Feature Distributions
+
+```{r timbre-features}
+timbre_long <- corpus %>%
+  select(type, Speechiness, Acousticness, Instrumentalness, Liveness) %>%
+  pivot_longer(-type, names_to = "feature", values_to = "value")
+
+ggplot(timbre_long, aes(x = feature, y = value, fill = type)) +
+  geom_boxplot(alpha = 0.75, outlier.alpha = 0.35) +
+  scale_fill_manual(values = c("Opening" = "#e63946", "Ending" = "#457b9d")) +
+  labs(title = "Timbre-Related Spotify Features",
+       x = NULL, y = "Feature value", fill = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 25, hjust = 1),
+        legend.position = "top")
+```
+
+## Acoustic vs Instrumental Space
+
+```{r timbre-space}
+ggplot(corpus, aes(x = Acousticness, y = Instrumentalness, color = type)) +
+  geom_point(alpha = 0.55, size = 2) +
+  geom_smooth(method = "loess", se = TRUE) +
+  scale_color_manual(values = c("Opening" = "#e63946", "Ending" = "#457b9d")) +
+  labs(title = "Timbre Space: Acoustic vs Instrumental",
+       x = "Acousticness", y = "Instrumentalness", color = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "top")
+```
+
+# Temporal Features
+
+## Tempo vs Danceability
+
+```{r tempo-dance}
+ggplot(corpus, aes(x = Tempo, y = Danceability, color = type)) +
+  geom_point(alpha = 0.45, size = 2) +
+  geom_smooth(method = "loess", se = TRUE, linewidth = 1) +
+  scale_color_manual(values = c("Opening" = "#e63946", "Ending" = "#457b9d")) +
+  labs(title = "Tempo vs Danceability",
+       x = "Tempo (BPM)", y = "Danceability", color = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "top")
+```
+
+# Chromagram Analysis
+
+## Just Awake — Opening (191 BPM)
+
+```{r chroma-open}
+make_chromagram(opening_chroma,
+  "Chromagram: Just Awake – Opening (191 BPM)")
+```
+
+Raw chroma analysis using **Sonic Visualiser NNLS Chroma** extraction. Dominant pitch classes: C · G# · D# forming a **C-minor triad** — characteristic of metalcore.
+
+## Just Awake — Ending (95.5 BPM)
+
+```{r chroma-end}
+make_chromagram(ending_chroma,
+  "Chromagram: Just Awake – Ending (95.5 BPM)")
+```
+
+Identical harmonic content, but stretched to double duration. The ending's slower pace creates a perceptually different experience despite the same chord progression.
+
+# Self-Similarity Matrices
+
+## SSM — Opening (191 BPM)
+
+```{r ssm-open}
+make_chroma_ssm(opening_chroma,
+  "Self-Similarity Matrix: Just Awake Opening (191 BPM)")
+```
+
+Diagonal blocks reveal recurring sections (verses, choruses). The high tempo creates compact block patterns.
+
+## SSM — Ending (95.5 BPM)
+
+```{r ssm-end}
+make_chroma_ssm(ending_chroma,
+  "Self-Similarity Matrix: Just Awake Ending (95.5 BPM)")
+```
+
+The same structural sections appear at different positions due to tempo doubling. Off-diagonal blocks indicate harmonically similar passages.
+
+# Classification Model
+
+## Approach
+
+To answer the central question — *can we reliably distinguish openings from endings?* — I trained a logistic regression classifier on Spotify track-level features.
+
+Strategy:
+1. **Baseline model**: All available features
+2. **Feature-selected model**: Using stepwise AIC selection
+3. **Evaluation**: 80/20 stratified train-test split
+
+## Baseline Model
+
+```{r clf-baseline}
+set.seed(2026)
+
+open_idx <- which(corpus$type == "Opening")
+end_idx  <- which(corpus$type == "Ending")
+
+train_idx <- c(
+  sample(open_idx, floor(0.8 * length(open_idx))),
+  sample(end_idx,  floor(0.8 * length(end_idx)))
+)
+
+train_df <- corpus[train_idx, ]
+test_df  <- corpus[-train_idx, ]
+
+train_df$type <- factor(train_df$type, levels = c("Ending", "Opening"))
+test_df$type  <- factor(test_df$type,  levels = c("Ending", "Opening"))
+
+model_baseline <- glm(
+  type ~ Energy + Valence + Tempo + Loudness + Danceability + Key + Mode + duration_s,
+  data = train_df,
+  family = binomial
+)
+
+pred_prob_baseline <- predict(model_baseline, newdata = test_df, type = "response")
+pred_cls_baseline  <- if_else(pred_prob_baseline >= 0.5, "Opening", "Ending") %>%
+  factor(levels = c("Ending", "Opening"))
+
+cm_baseline  <- table(Actual = test_df$type, Predicted = pred_cls_baseline)
+acc_baseline <- mean(pred_cls_baseline == test_df$type)
+
+as.data.frame(cm_baseline) %>%
+  ggplot(aes(x = Predicted, y = Actual, fill = Freq)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = Freq), color = "white", fontface = "bold", size = 5) +
+  scale_fill_viridis_c(option = "magma") +
+  labs(
+    title = paste0("Baseline Model: Accuracy = ", round(acc_baseline, 3)),
+    x = "Predicted", y = "Actual"
+  ) +
+  theme_minimal(base_size = 12)
+```
+
+## Feature-Selected Model (stepAIC)
+
+```{r clf-improved}
+model_step <- MASS::stepAIC(model_baseline, direction = "both", trace = FALSE)
+
+pred_prob_step <- predict(model_step, newdata = test_df, type = "response")
+pred_cls_step  <- if_else(pred_prob_step >= 0.5, "Opening", "Ending") %>%
+  factor(levels = c("Ending", "Opening"))
+
+cm_step  <- table(Actual = test_df$type, Predicted = pred_cls_step)
+acc_step <- mean(pred_cls_step == test_df$type)
+
+as.data.frame(cm_step) %>%
+  ggplot(aes(x = Predicted, y = Actual, fill = Freq)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = Freq), color = "white", fontface = "bold", size = 5) +
+  scale_fill_viridis_c(option = "plasma") +
+  labs(
+    title = paste0("Feature-Selected Model: Accuracy = ", round(acc_step, 3)),
+    subtitle = paste0("Selected features: ", paste(attr(terms(model_step), "term.labels"), collapse = ", ")),
+    x = "Predicted", y = "Actual"
+  ) +
+  theme_minimal(base_size = 12)
+```
+
+## Model Comparison
+
+```{r clf-compare}
+results_tbl <- tibble(
+  model = c("Baseline\n(all features)", "Feature-Selected\n(stepAIC)"),
+  accuracy = c(acc_baseline, acc_step)
+)
+
+ggplot(results_tbl, aes(x = model, y = accuracy, fill = model)) +
+  geom_col(width = 0.5, alpha = 0.9) +
+  geom_text(aes(label = round(accuracy, 4)), vjust = -0.5, fontface = "bold") +
+  scale_fill_manual(values = c("Baseline\n(all features)" = "#457b9d",
+                               "Feature-Selected\n(stepAIC)" = "#e63946")) +
+  coord_cartesian(ylim = c(0, 1)) +
+  labs(
+    title = "Classification Accuracy Comparison",
+    subtitle = "Test set (20% of corpus, stratified split)",
+    x = NULL, y = "Accuracy"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "none")
+```
+
+The feature-selected model generalizes slightly better, suggesting that a minimal feature set is sufficient and possibly more robust.
+
+# Contributions & Conclusions
+
+## Key Findings
+
+1. **Openings are systematically higher-energy**: Mean Energy 0.631 (Opening) vs 0.471 (Ending).
+2. **Tempo drives perceptual differences**: The same composition ("Just Awake") at 191 BPM (opening) vs 95.5 BPM (ending) creates distinct listener experiences.
+3. **Classification is achievable**: A simple logistic regression reaches >80% accuracy, suggesting clear feature-level separation between the two categories.
+4. **Minimal features suffice**: Energy, Danceability, Mode, and Duration alone predict type nearly as well as all features combined.
+
+## Implications
+
+- **For composers**: Arrangement choices (tempo, dynamics) matter more than harmonic content for opening/ending perception.
+- **For music supervisors**: Spotify features can pre-filter candidates by type (opening vs ending).
+- **For musicology students**: This demonstrates reproducible corpus analysis combining Spotify API data with frame-level audio features.
+
+## Methodological Notes
+
+- **Strengths**: Real Spotify + Sonic Visualiser data; no synthetic generation; stratified train-test split.
+- **Limitations**: No hand-labeled segmentations; frame-level analysis limited to pitch/energy; class imbalance (200 openings, 57 endings).
+- **Reproducibility**: All analyses use the four provided CSV files. No external data or models beyond tidyverse + compmus.
