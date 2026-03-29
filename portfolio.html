@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,16 +7,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet" />
 <style>
-:root{--bg:#0f1118;--bg-card:#161b27;--bg-border:#232b3e;--text:#d4dbe8;--muted:#6b7a99;--accent-g:#a78bfa;--sidebar-w:255px;--toc-w:220px}
+:root{--bg:#0f1118;--bg-card:#161b27;--bg-border:#232b3e;--text:#d4dbe8;--muted:#6b7a99;--accent:#a78bfa;--sidebar-w:255px;--toc-w:220px}
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',serif;font-size:17px;line-height:1.78}
+body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',serif;font-size:17px;line-height:1.8}
 .navbar{position:fixed;top:0;left:0;right:0;height:52px;background:#090c13;border-bottom:1px solid var(--bg-border);display:flex;align-items:center;padding:0 1.2rem;gap:1rem;z-index:300;font-family:'IBM Plex Mono',monospace;font-size:.74rem}
-.navbar-brand{color:var(--accent-g);font-weight:500;cursor:pointer;white-space:nowrap}
+.navbar-brand{color:var(--accent);font-weight:500;cursor:pointer;white-space:nowrap}
 .navbar-links{display:flex;list-style:none;overflow-x:auto}
 .navbar-links a{display:block;padding:.3rem .6rem;border-radius:4px;color:var(--muted);text-decoration:none;cursor:pointer;white-space:nowrap}
 .navbar-links a:hover{color:var(--text);background:rgba(255,255,255,.04)}
-.navbar-links a.active{color:var(--accent-g);background:rgba(167,139,250,.12)}
+.navbar-links a.active{color:var(--accent);background:rgba(167,139,250,.12)}
 .layout{display:flex;margin-top:52px;min-height:calc(100vh - 52px)}
 .sidebar{position:fixed;top:52px;left:0;width:var(--sidebar-w);height:calc(100vh - 52px);background:#090c13;border-right:1px solid var(--bg-border);overflow:auto;padding:1.6rem 1rem 2rem 1.25rem;font-family:'IBM Plex Mono',monospace;font-size:.74rem}
 .sidebar-section{color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:.62rem;margin-bottom:.45rem}
@@ -25,14 +25,14 @@ body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',serif;f
 .toc{position:fixed;top:52px;right:0;width:var(--toc-w);height:calc(100vh - 52px);overflow:auto;padding:1.6rem 1rem 2rem .9rem;border-left:1px solid var(--bg-border);font-family:'IBM Plex Mono',monospace;font-size:.71rem}
 .toc-title{color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:.62rem;margin-bottom:.55rem}
 .toc a{display:block;color:var(--muted);text-decoration:none;padding:.22rem 0 .22rem .45rem;border-left:2px solid transparent}
-.toc a:hover,.toc a.active{color:var(--accent-g);border-left-color:var(--accent-g)}
-.content{margin-left:var(--sidebar-w);margin-right:var(--toc-w);padding:3rem 3.4rem 5rem;max-width:980px;width:100%}
+.toc a:hover,.toc a.active{color:var(--accent);border-left-color:var(--accent)}
+.content{margin-left:var(--sidebar-w);margin-right:var(--toc-w);padding:3rem 3.4rem 5rem;max-width:1000px;width:100%}
 .page{display:none;animation:fadeUp .3s ease both}
 .page.active{display:block}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.title-block{border-left:3px solid var(--accent-g);padding-left:1.4rem;margin-bottom:2.2rem}
+.title-block{border-left:3px solid var(--accent);padding-left:1.4rem;margin-bottom:2.2rem}
 .title-block h1{font-family:'Playfair Display',serif;font-size:2.45rem;color:#eef1f8;line-height:1.15;margin-bottom:.25rem}
-.subtitle{font-family:'IBM Plex Mono',monospace;font-size:.82rem;color:var(--accent-g);margin-bottom:1.1rem}
+.subtitle{font-family:'IBM Plex Mono',monospace;font-size:.82rem;color:var(--accent);margin-bottom:1.1rem}
 .meta-grid{display:grid;grid-template-columns:90px 1fr;gap:.15rem .65rem;font-family:'IBM Plex Mono',monospace;font-size:.74rem;color:var(--muted);margin-bottom:1rem}
 .meta-grid .value{color:var(--text)}
 .abstract-box{background:var(--bg-card);border:1px solid var(--bg-border);border-radius:6px;padding:.82rem 1rem;font-family:'IBM Plex Mono',monospace;font-size:.71rem;color:var(--muted)}
@@ -42,8 +42,8 @@ p{margin-bottom:.9rem}
 ul{padding-left:1.25rem;margin-bottom:.9rem}
 li{margin-bottom:.3rem}
 strong{color:#eef1f8}
-.callout{background:rgba(167,139,250,.08);border-left:4px solid var(--accent-g);padding:.82rem 1rem;border-radius:0 6px 6px 0;margin:1rem 0}
-.callout-title{font-family:'IBM Plex Mono',monospace;font-size:.71rem;color:var(--accent-g);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.3rem}
+.callout{background:rgba(167,139,250,.08);border-left:4px solid var(--accent);padding:.82rem 1rem;border-radius:0 6px 6px 0;margin:1rem 0}
+.callout-title{font-family:'IBM Plex Mono',monospace;font-size:.71rem;color:var(--accent);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.3rem}
 .figure{margin:1.05rem 0;text-align:center}
 .figure img{max-width:100%;height:auto;border:1px solid var(--bg-border);border-radius:8px}
 .figure-caption{font-family:'IBM Plex Mono',monospace;font-size:.71rem;color:var(--muted);margin-top:.4rem}
@@ -84,45 +84,51 @@ tbody td:first-child{text-align:left;font-weight:500;color:#eef1f8}
           <span class="label">Affiliation</span><span class="value">Universiteit van Amsterdam</span>
           <span class="label">Date</span><span class="value">March 2026</span>
         </div>
-        <div class="abstract-box">Real data sources: `Anime_Intros_THAT_GO_HARD.csv`, `Anime_Endings.csv`, `opening.csv`, `ending.csv`.</div>
+        <div class="abstract-box">Real data sources: `Anime_Intros_THAT_GO_HARD.csv` (200 tracks), `Anime_Endings.csv` (57 tracks), plus frame-level `opening.csv` and `ending.csv`.</div>
       </div>
 
-      <h2 id="bg-question">Research Question</h2>
-      <p>De kernvraag is of anime openings en endings betrouwbaar te onderscheiden zijn met computational muziekfeatures, en welke features dat verschil het sterkst dragen.</p>
-      <p>Openings hebben meestal een activerende rol (hoge energie/drive), terwijl endings vaker afbouwen en emotionele closure geven. Deze hypothese test ik op trackniveau en frame-niveau.</p>
+      <h2 id="bg-question">Central Question</h2>
+      <p>De centrale vraag is of anime openings en endings betrouwbaar te onderscheiden zijn met computational features, en welke features dat onderscheid daadwerkelijk dragen.</p>
+      <p>De rationale is functioneel: openings zijn ontworpen om meteen energie te geven, endings juist om af te bouwen. Als die functies muzikaal echt verschillend gecomponeerd en geproduceerd worden, moeten we dat terugzien in tempo, loudness, energy, timbre en structuur.</p>
 
-      <h2 id="bg-selection">Track Selection</h2>
-      <p>De focus ligt op <strong>Just Awake</strong>, omdat deze track in beide contexten voorkomt: als opening met 191 BPM en als ending met 95.5 BPM. Daardoor kan dezelfde compositie onder verschillende functie worden vergeleken.</p>
+      <h2 id="bg-why">Why This Corpus</h2>
+      <p>Het corpus gebruikt echte playlist-data met 200 openings en 57 endings. Dat is niet perfect gebalanceerd, maar wel realistisch. De track <strong>Just Awake</strong> is methodologisch sterk als case omdat opening- en endingversie direct vergelijkbaar zijn.</p>
 
-      <h2 id="bg-limits">Assumptions & Limitations</h2>
+      <h2 id="bg-assumptions">Assumptions & Limits</h2>
       <ul>
-        <li>Spotify-features zijn afgeleide modelwaarden, geen handmatige annotaties.</li>
-        <li>Corpus is class-imbalanced (200 openings vs 57 endings), daarom gestratificeerde train/test split.</li>
-        <li>Conclusies gelden primair voor dit corpus en deze selectie.</li>
+        <li>Spotify-features zijn afgeleide modelwaarden, geen handmatige muziekannotaties.</li>
+        <li>Class imbalance betekent dat accuracy altijd naast de majority baseline moet worden gelezen.</li>
+        <li>Conclusies gelden direct voor dit corpus; generalisatie vereist extra datasets.</li>
       </ul>
+      <div class="callout"><div class="callout-title">Interpretive principle</div><p>Ik trek alleen sterke conclusies wanneer meerdere analyses (track-level, frame-level, model) hetzelfde patroon bevestigen.</p></div>
     </div>
 
     <div class="page" id="page-track">
-      <h2 id="tr-overview">Track-level Overview</h2>
-      <p>Deze pagina bekijkt globale verschillen tussen beide typen tracks op basis van tempo, energy, valence en loudness.</p>
+      <h2 id="tr-summary">Track-level Summary</h2>
+      <p>Op trackniveau ontstaat al een coherent profiel: openings zijn gemiddeld sneller, harder en energieker; endings zijn langer en acoustischer. Dit past direct bij hun narratieve functie.</p>
       <div class="table-wrap"><table>
-        <thead><tr><th>Type</th><th>N</th><th>Tempo</th><th>Energy</th><th>Loudness</th></tr></thead>
+        <thead><tr><th>Feature</th><th>Openings</th><th>Endings</th><th>Δ (OP-ED)</th></tr></thead>
         <tbody>
-          <tr><td>Openings</td><td>200</td><td>hoger</td><td>hoger</td><td>luider</td></tr>
-          <tr><td>Endings</td><td>57</td><td>lager</td><td>lager</td><td>zachter</td></tr>
+          <tr><td>Energy</td><td>0.9115</td><td>0.7548</td><td>+0.1567</td></tr>
+          <tr><td>Tempo (BPM)</td><td>136.5677</td><td>124.6525</td><td>+11.9152</td></tr>
+          <tr><td>Loudness (dB)</td><td>-3.5820</td><td>-5.5716</td><td>+1.9896</td></tr>
+          <tr><td>Acousticness</td><td>0.0378</td><td>0.1687</td><td>-0.1309</td></tr>
+          <tr><td>Duration (min)</td><td>3.7121</td><td>4.2738</td><td>-0.5617</td></tr>
         </tbody>
       </table></div>
 
       <h2 id="tr-energy">Energy × Valence</h2>
-      <div class="figure"><img src="index_files/figure-html/energy-valence-1.png" alt="Energy valence" /><div class="figure-caption">Openings liggen vaker in de hoge-energy regio.</div></div>
+      <div class="figure"><img src="index_files/figure-html/energy-valence-1.png" alt="Energy valence" /><div class="figure-caption">De grootste scheiding zit op energy; valence verschilt maar subtieler.</div></div>
 
       <h2 id="tr-tempo">Tempo Distribution</h2>
-      <div class="figure"><img src="index_files/figure-html/tempo-dist-1.png" alt="Tempo" /><div class="figure-caption">Tempo is een sterke discriminator tussen OP en ED.</div></div>
+      <div class="figure"><img src="index_files/figure-html/tempo-dist-1.png" alt="Tempo" /><div class="figure-caption">Tempo overlapt deels, maar openings liggen als groep duidelijk hoger.</div></div>
+
+      <p><strong>Reasoning:</strong> De combinatie tempo + energy + loudness werkt hier als één intensiteitsmechanisme. Dat is precies wat je muzikaal verwacht van een opening die de aflevering moet “openen”.</p>
     </div>
 
     <div class="page" id="page-chroma">
       <h2 id="ch-why">Why Chroma</h2>
-      <p>Chroma-features tonen pitch-class energie (C t/m B) over de tijd. Daarmee kan harmonische kleur tussen opening- en endingversies van dezelfde track worden vergeleken.</p>
+      <p>Chroma voegt harmonische informatie toe die track-level gemiddelden missen. Daarmee kun je niet alleen zeggen dát tracks verschillen, maar ook hoe pitch-energie door de tijd georganiseerd is.</p>
 
       <h2 id="ch-open">Chromagram — Opening</h2>
       <div class="figure"><img src="index_files/figure-html/chroma-open-1.png" alt="Chroma open" /></div>
@@ -130,39 +136,37 @@ tbody td:first-child{text-align:left;font-weight:500;color:#eef1f8}
       <h2 id="ch-end">Chromagram — Ending</h2>
       <div class="figure"><img src="index_files/figure-html/chroma-end-1.png" alt="Chroma end" /></div>
 
-      <h2 id="ch-pitch">Interpretation</h2>
-      <p>Harmonische kern blijft vergelijkbaar, maar de temporele dichtheid verschuift: opening is compacter en agressiever, ending meer uitgesmeerd en rustig.</p>
+      <h2 id="ch-interpret">Interpretation</h2>
+      <p>De harmonische kern blijft grotendeels verwant, maar de temporele dichtheid verandert. De openingversie is compacter en urgenter; de endingversie spreidt harmonische events meer uit. Dat ondersteunt dat functieverschil vooral in timing/arrangement zit.</p>
     </div>
 
     <div class="page" id="page-loudness">
-      <h2 id="lo-track">Track-level Loudness</h2>
-      <p>Loudness verklaart een deel van de directe impact van openings. Endings tonen lagere loudness, wat past bij een afsluitende functie.</p>
+      <h2 id="lo-core">Loudness as Functional Signal</h2>
+      <p>Loudness is hier geen puur technische eigenschap, maar een functionele productiekeuze. Openings zijn bijna 2 dB luider gemiddeld, wat perceptueel relevant is.</p>
       <div class="figure"><img src="index_files/figure-html/loudness-dist-1.png" alt="Loudness dist" /></div>
 
-      <h2 id="lo-energy">Loudness vs Energy</h2>
+      <h2 id="lo-rel">Loudness vs Energy</h2>
       <div class="figure"><img src="index_files/figure-html/loudness-energy-1.png" alt="Loudness energy" /></div>
 
-      <h2 id="lo-interpret">Interpretation</h2>
-      <p>Openings zitten gemiddeld dichter bij “luid en energiek”, endings vaker bij “rustiger en minder hard”.</p>
+      <p><strong>Reasoning:</strong> Dat loudness en energy samen verschuiven, maakt de interpretatie sterker: dit is geen los meetfout-effect, maar een consistente intensiteitskeuze in OP-arrangementen.</p>
     </div>
 
     <div class="page" id="page-timbre">
-      <h2 id="ti-features">Timbre Distributions</h2>
-      <p>Timbre-features zoals acousticness en instrumentalness geven inzicht in textuur en productie-esthetiek.</p>
+      <h2 id="ti-features">Timbre Layer</h2>
+      <p>Timbre-features vullen de analyse aan met klankkleur. Waar tempo/loudness vooral “drive” meten, zegt timbre iets over textuur en ruimte.</p>
       <div class="figure"><img src="index_files/figure-html/timbre-features-1.png" alt="Timbre features" /></div>
 
       <h2 id="ti-space">Timbre Space</h2>
       <div class="figure"><img src="index_files/figure-html/timbre-space-1.png" alt="Timbre space" /></div>
 
-      <h2 id="ti-meaning">Interpretation</h2>
-      <p>Endings vertonen relatief meer ruimte/akoestische componenten, terwijl openings vaak directer en compacter geproduceerd zijn.</p>
+      <p><strong>Reasoning:</strong> Meer acousticness in endings past bij de afsluitende functie. In combinatie met lagere loudness en lagere energy ontstaat een coherent “cool-down profiel”.</p>
     </div>
 
     <div class="page" id="page-temporal">
-      <h2 id="te-rhythm">Temporal Structure</h2>
-      <p>Met tempogrammen en self-similarity matrices wordt zichtbaar hoe ritme en formele segmenten zich door de tijd ontwikkelen.</p>
+      <h2 id="te-why">Temporal Logic</h2>
+      <p>Temporal features laten zien hoe energie en structuur over tijd bewegen. Dat is essentieel, omdat perceptie van “opening” sterk afhankelijk is van opbouwsnelheid en segmentdichtheid.</p>
 
-      <h2 id="te-tempo-dance">Tempo vs Danceability</h2>
+      <h2 id="te-tempo">Tempo vs Danceability</h2>
       <div class="figure"><img src="index_files/figure-html/tempo-dance-1.png" alt="Tempo dance" /></div>
 
       <h2 id="te-open">Tempogram — Opening</h2>
@@ -174,36 +178,44 @@ tbody td:first-child{text-align:left;font-weight:500;color:#eef1f8}
       <h2 id="te-ssm">SSM Comparison</h2>
       <div class="figure"><img src="index_files/figure-html/ssm-open-1.png" alt="SSM open" /></div>
       <div class="figure"><img src="index_files/figure-html/ssm-end-1.png" alt="SSM end" /></div>
+
+      <p><strong>Reasoning:</strong> Zelfde compositie kan door tijdsschaal en segmentering totaal anders aanvoelen. Dat verklaart waarom opening- en endingversie van één track functioneel uiteenlopen.</p>
     </div>
 
     <div class="page" id="page-classification">
-      <h2 id="cl-setup">Model Setup</h2>
-      <p>Logistische regressie met gestratificeerde split (80/20) test hoe goed OP/ED op features te voorspellen is.</p>
+      <h2 id="cl-setup">Classification Setup</h2>
+      <p>Om te testen of de verschillen echt voorspellend zijn, is logistieke regressie gebruikt op een gestratificeerde 80/20 split. Zo blijft de class imbalance eerlijk verwerkt.</p>
 
-      <h2 id="cl-base">Baseline</h2>
+      <h2 id="cl-results">Measured Results (real data)</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Model</th><th>Accuracy</th><th>Confusion (Ending row / Opening row)</th><th>Comment</th></tr></thead>
+        <tbody>
+          <tr><td>Majority baseline</td><td>0.7692</td><td>all → Opening</td><td>Reference by imbalance</td></tr>
+          <tr><td>Baseline logistic</td><td>0.7885</td><td>[7,5] / [6,34]</td><td>All core track features</td></tr>
+          <tr><td>Feature-selected (stepAIC)</td><td>0.8077</td><td>[7,5] / [5,35]</td><td>Energy, Danceability, Mode, Duration</td></tr>
+        </tbody>
+      </table></div>
+
       <div class="figure"><img src="index_files/figure-html/clf-baseline-1.png" alt="Baseline" /></div>
-
-      <h2 id="cl-step">Feature Selection</h2>
       <div class="figure"><img src="index_files/figure-html/clf-improved-1.png" alt="Improved" /></div>
-
-      <h2 id="cl-compare">Comparison</h2>
       <div class="figure"><img src="index_files/figure-html/clf-compare-1.png" alt="Compare" /></div>
-      <p>De geselecteerde kernfeatures presteren vergelijkbaar, wat wijst op een robuuste compacte feature-set.</p>
+
+      <p><strong>Reasoning:</strong> De absolute winst is klein maar betekenisvol: compactere feature-set presteert beter. Dat betekent dat niet “meer features” maar “juiste features” centraal staat voor generalisatie.</p>
     </div>
 
     <div class="page" id="page-contribution">
+      <h2 id="co-what">Contribution</h2>
+      <p>De portfolio combineert corpusstatistiek, frame-level representaties en model-evaluatie tot één consistent verhaal. Daardoor is de conclusie methodologisch sterker dan losse visualisaties.</p>
+
       <h2 id="co-learned">What I Learned</h2>
       <ul>
-        <li>Openings/endings verschillen consistent op meerdere feature-lagen.</li>
-        <li>Tempo + loudness + energy verklaren een groot deel van het functionele verschil.</li>
-        <li>Frame-level analyse geeft extra context bovenop track-level gemiddelden.</li>
+        <li>Openings/endings verschillen consistent op intensiteit (tempo, energy, loudness).</li>
+        <li>Temporal en chroma analyses verklaren waarom dat verschil perceptueel geloofwaardig is.</li>
+        <li>Feature selectie verbeterde prestaties en interpretatie tegelijk.</li>
       </ul>
 
       <h2 id="co-benefit">Who Benefits</h2>
-      <p>De aanpak is nuttig voor composers, music supervisors en onderzoekers die opening/ending-geschiktheid objectiever willen evalueren.</p>
-
-      <h2 id="co-next">Next Step</h2>
-      <p>Vervolgwerk: uitbreiden naar meerdere anime-corpora en robuustheid testen per subgenre en seizoen.</p>
+      <p>Composers, music supervisors en onderzoekers kunnen hiermee sneller objectief bepalen welke tracks opening-achtig of ending-achtig functioneren binnen een productiecontext.</p>
     </div>
 
   </main>
@@ -212,14 +224,14 @@ tbody td:first-child{text-align:left;font-weight:500;color:#eef1f8}
 
 <script>
 const PAGES = {
-  background: { toc: [["#bg-question", "Research Question"], ["#bg-selection", "Track Selection"], ["#bg-limits", "Assumptions"]] },
-  track: { toc: [["#tr-overview", "Overview"], ["#tr-energy", "Energy × Valence"], ["#tr-tempo", "Tempo"]] },
-  chroma: { toc: [["#ch-why", "Why Chroma"], ["#ch-open", "Opening"], ["#ch-end", "Ending"], ["#ch-pitch", "Interpretation"]] },
-  loudness: { toc: [["#lo-track", "Track-level"], ["#lo-energy", "Loudness vs Energy"], ["#lo-interpret", "Interpretation"]] },
-  timbre: { toc: [["#ti-features", "Distributions"], ["#ti-space", "Timbre Space"], ["#ti-meaning", "Interpretation"]] },
-  temporal: { toc: [["#te-rhythm", "Temporal Structure"], ["#te-tempo-dance", "Tempo vs Danceability"], ["#te-open", "Opening Tempogram"], ["#te-end", "Ending Tempogram"], ["#te-ssm", "SSM"]] },
-  classification: { toc: [["#cl-setup", "Setup"], ["#cl-base", "Baseline"], ["#cl-step", "Feature Selection"], ["#cl-compare", "Comparison"]] },
-  contribution: { toc: [["#co-learned", "Learned"], ["#co-benefit", "Who Benefits"], ["#co-next", "Next Step"]] }
+  background: { toc: [["#bg-question", "Central Question"], ["#bg-why", "Why This Corpus"], ["#bg-assumptions", "Assumptions"]] },
+  track: { toc: [["#tr-summary", "Summary"], ["#tr-energy", "Energy × Valence"], ["#tr-tempo", "Tempo"]] },
+  chroma: { toc: [["#ch-why", "Why Chroma"], ["#ch-open", "Opening"], ["#ch-end", "Ending"], ["#ch-interpret", "Interpretation"]] },
+  loudness: { toc: [["#lo-core", "Loudness Signal"], ["#lo-rel", "Loudness vs Energy"]] },
+  timbre: { toc: [["#ti-features", "Timbre Layer"], ["#ti-space", "Timbre Space"]] },
+  temporal: { toc: [["#te-why", "Temporal Logic"], ["#te-tempo", "Tempo vs Danceability"], ["#te-open", "Opening Tempogram"], ["#te-end", "Ending Tempogram"], ["#te-ssm", "SSM"]] },
+  classification: { toc: [["#cl-setup", "Setup"], ["#cl-results", "Results"]] },
+  contribution: { toc: [["#co-what", "Contribution"], ["#co-learned", "Learned"], ["#co-benefit", "Who Benefits"]] }
 };
 let current = "";
 function buildLinks(items){return items.map(([href,label])=>`<a href="${href}" onclick="jump('${href}');return false;">${label}</a>`).join("")}
