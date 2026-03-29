@@ -1,1178 +1,163 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-
-<meta charset="utf-8">
-<meta name="generator" content="quarto-1.6.42">
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-
-<meta name="author" content="Mehmed">
-<meta name="dcterms.date" content="2026-03-01">
-
-<title>Anime Openings vs Endings: A Computational Musicology Analysis</title>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Anime Openings vs Endings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet" />
 <style>
-code{white-space: pre-wrap;}
-span.smallcaps{font-variant: small-caps;}
-div.columns{display: flex; gap: min(4vw, 1.5em);}
-div.column{flex: auto; overflow-x: auto;}
-div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
-ul.task-list{list-style: none;}
-ul.task-list li input[type="checkbox"] {
-  width: 0.8em;
-  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
-  vertical-align: middle;
-}
-/* CSS for syntax highlighting */
-pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
-pre > code.sourceCode > span:empty { height: 1.2em; }
-.sourceCode { overflow: visible; }
-code.sourceCode > span { color: inherit; text-decoration: inherit; }
-div.sourceCode { margin: 1em 0; }
-pre.sourceCode { margin: 0; }
-@media screen {
-div.sourceCode { overflow: auto; }
-}
-@media print {
-pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
-}
-pre.numberSource code
-  { counter-reset: source-line 0; }
-pre.numberSource code > span
-  { position: relative; left: -4em; counter-increment: source-line; }
-pre.numberSource code > span > a:first-child::before
-  { content: counter(source-line);
-    position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; display: inline-block;
-    -webkit-touch-callout: none; -webkit-user-select: none;
-    -khtml-user-select: none; -moz-user-select: none;
-    -ms-user-select: none; user-select: none;
-    padding: 0 4px; width: 4em;
-  }
-pre.numberSource { margin-left: 3em;  padding-left: 4px; }
-div.sourceCode
-  {   }
-@media screen {
-pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
-}
+:root{--bg:#0f1118;--bg-card:#161b27;--bg-border:#232b3e;--text:#d4dbe8;--muted:#6b7a99;--accent-o:#ff6b6b;--accent-e:#4dabf7;--accent-g:#a78bfa;--sidebar-w:255px;--toc-w:220px}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',serif;font-size:17px;line-height:1.75}
+.navbar{position:fixed;top:0;left:0;right:0;height:52px;background:#090c13;border-bottom:1px solid var(--bg-border);display:flex;align-items:center;padding:0 1.25rem;gap:1.4rem;z-index:300;font-family:'IBM Plex Mono',monospace;font-size:.76rem}
+.navbar-brand{color:var(--accent-g);font-weight:500;cursor:pointer}
+.navbar-links{display:flex;list-style:none;overflow-x:auto}
+.navbar-links a{display:block;padding:.3rem .72rem;border-radius:4px;color:var(--muted);text-decoration:none;cursor:pointer}
+.navbar-links a:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.navbar-links a.active{color:var(--accent-g);background:rgba(167,139,250,.12)}
+.layout{display:flex;margin-top:52px;min-height:calc(100vh - 52px)}
+.sidebar{position:fixed;top:52px;left:0;width:var(--sidebar-w);height:calc(100vh - 52px);background:#090c13;border-right:1px solid var(--bg-border);overflow:auto;padding:1.7rem 1rem 2rem 1.3rem;font-family:'IBM Plex Mono',monospace;font-size:.74rem}
+.sidebar-section{color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:.63rem;margin-bottom:.5rem}
+.sidebar a{display:block;color:var(--muted);text-decoration:none;padding:.26rem .4rem;border-radius:4px;line-height:1.45}
+.sidebar a.active,.sidebar a:hover{color:var(--text);background:rgba(255,255,255,.06)}
+.toc{position:fixed;top:52px;right:0;width:var(--toc-w);height:calc(100vh - 52px);overflow:auto;padding:1.7rem 1.1rem 2rem 1rem;border-left:1px solid var(--bg-border);font-family:'IBM Plex Mono',monospace;font-size:.72rem}
+.toc-title{color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:.63rem;margin-bottom:.6rem}
+.toc a{display:block;color:var(--muted);text-decoration:none;padding:.22rem 0 .22rem .45rem;border-left:2px solid transparent}
+.toc a.active,.toc a:hover{color:var(--accent-g);border-left-color:var(--accent-g)}
+.content{margin-left:var(--sidebar-w);margin-right:var(--toc-w);padding:3rem 3.5rem 5rem;max-width:940px;width:100%}
+.page{display:none;animation:fadeUp .3s ease both}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.title-block{border-left:3px solid var(--accent-g);padding-left:1.5rem;margin-bottom:2.3rem}
+.title-block h1{font-family:'Playfair Display',serif;font-size:2.5rem;color:#eef1f8;line-height:1.15;margin-bottom:.25rem}
+.title-block .subtitle{font-family:'IBM Plex Mono',monospace;font-size:.83rem;color:var(--accent-g);margin-bottom:1.2rem}
+.meta-grid{display:grid;grid-template-columns:90px 1fr;gap:.2rem .7rem;font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--muted);margin-bottom:1rem}
+.meta-grid .value{color:var(--text)}
+.abstract-box{background:var(--bg-card);border:1px solid var(--bg-border);border-radius:6px;padding:.85rem 1rem;font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--muted)}
+h2{font-family:'Playfair Display',serif;font-size:1.5rem;color:#eef1f8;margin:2.6rem 0 .8rem;padding-bottom:.45rem;border-bottom:1px solid var(--bg-border)}
+h3{font-family:'Playfair Display',serif;font-size:1.14rem;color:#c8d3e8;margin:1.7rem 0 .5rem}
+p{margin-bottom:.92rem}
+strong{color:#eef1f8}
+.figure{margin:1.2rem 0;text-align:center}
+.figure img{max-width:100%;height:auto;border:1px solid var(--bg-border);border-radius:8px}
+.figure-caption{font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--muted);margin-top:.45rem}
+.table-wrap{overflow:auto;margin:1.1rem 0;border:1px solid var(--bg-border);border-radius:8px}
+table{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:.74rem}
+thead th{background:var(--bg-card);color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-size:.63rem;padding:.58rem .8rem;border-bottom:1px solid var(--bg-border);text-align:center}
+tbody td{padding:.55rem .8rem;border-bottom:1px solid var(--bg-border);text-align:center}
+tbody td:first-child{text-align:left;font-weight:500;color:#eef1f8}
+.callout{background:rgba(167,139,250,.08);border-left:4px solid var(--accent-g);padding:.9rem 1.1rem;border-radius:0 6px 6px 0;margin:1.1rem 0}
+.callout-title{font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent-g);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.35rem}
+@media(max-width:1100px){.toc{display:none}.content{margin-right:0}}
+@media(max-width:720px){.sidebar{display:none}.content{margin-left:0;padding:2rem 1.2rem 4rem}}
 </style>
-
-
-<script src="index_files/libs/clipboard/clipboard.min.js"></script>
-<script src="index_files/libs/quarto-html/quarto.js"></script>
-<script src="index_files/libs/quarto-html/popper.min.js"></script>
-<script src="index_files/libs/quarto-html/tippy.umd.min.js"></script>
-<script src="index_files/libs/quarto-html/anchor.min.js"></script>
-<link href="index_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="index_files/libs/quarto-html/quarto-syntax-highlighting-dark-b53751a350365c71b6c909e95f209ed1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="index_files/libs/bootstrap/bootstrap.min.js"></script>
-<link href="index_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="index_files/libs/bootstrap/bootstrap-eba12755a715931efe68ba4464a7bfac.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="dark">
-<style>html{ scroll-behavior: smooth; }</style>
-
-
-<link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
-
-<div id="quarto-content" class="page-columns page-rows-contents page-layout-article toc-left">
-<div id="quarto-sidebar-toc-left" class="sidebar toc-left">
-  <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">Table of contents</h2>
-   
-  <ul>
-  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
-  <li><a href="#background" id="toc-background" class="nav-link" data-scroll-target="#background">Background</a>
-  <ul class="collapse">
-  <li><a href="#corpus-overview" id="toc-corpus-overview" class="nav-link" data-scroll-target="#corpus-overview">Corpus Overview</a></li>
-  <li><a href="#focus-tracks" id="toc-focus-tracks" class="nav-link" data-scroll-target="#focus-tracks">Focus Tracks</a></li>
-  </ul></li>
-  <li><a href="#track-level-features" id="toc-track-level-features" class="nav-link" data-scroll-target="#track-level-features">Track-Level Features</a>
-  <ul class="collapse">
-  <li><a href="#corpus-overview-1" id="toc-corpus-overview-1" class="nav-link" data-scroll-target="#corpus-overview-1">Corpus Overview</a></li>
-  <li><a href="#energy-valence-distribution" id="toc-energy-valence-distribution" class="nav-link" data-scroll-target="#energy-valence-distribution">Energy × Valence Distribution</a></li>
-  <li><a href="#tempo-distribution" id="toc-tempo-distribution" class="nav-link" data-scroll-target="#tempo-distribution">Tempo Distribution</a></li>
-  </ul></li>
-  <li><a href="#chroma-features-pitch" id="toc-chroma-features-pitch" class="nav-link" data-scroll-target="#chroma-features-pitch">Chroma Features (Pitch)</a>
-  <ul class="collapse">
-  <li><a href="#pitch-class-distribution" id="toc-pitch-class-distribution" class="nav-link" data-scroll-target="#pitch-class-distribution">Pitch Class Distribution</a></li>
-  <li><a href="#major-vs-minor-effect-on-valence" id="toc-major-vs-minor-effect-on-valence" class="nav-link" data-scroll-target="#major-vs-minor-effect-on-valence">Major vs Minor: Effect on Valence</a></li>
-  </ul></li>
-  <li><a href="#loudness" id="toc-loudness" class="nav-link" data-scroll-target="#loudness">Loudness</a>
-  <ul class="collapse">
-  <li><a href="#track-level-loudness" id="toc-track-level-loudness" class="nav-link" data-scroll-target="#track-level-loudness">Track-Level Loudness</a></li>
-  <li><a href="#loudness-vs-energy" id="toc-loudness-vs-energy" class="nav-link" data-scroll-target="#loudness-vs-energy">Loudness vs Energy</a></li>
-  <li><a href="#frame-level-energy-just-awake-opening" id="toc-frame-level-energy-just-awake-opening" class="nav-link" data-scroll-target="#frame-level-energy-just-awake-opening">Frame-Level Energy: “Just Awake” Opening</a></li>
-  <li><a href="#frame-level-energy-just-awake-ending" id="toc-frame-level-energy-just-awake-ending" class="nav-link" data-scroll-target="#frame-level-energy-just-awake-ending">Frame-Level Energy: “Just Awake” Ending</a></li>
-  </ul></li>
-  <li><a href="#timbre" id="toc-timbre" class="nav-link" data-scroll-target="#timbre">Timbre</a>
-  <ul class="collapse">
-  <li><a href="#timbre-feature-distributions" id="toc-timbre-feature-distributions" class="nav-link" data-scroll-target="#timbre-feature-distributions">Timbre Feature Distributions</a></li>
-  <li><a href="#acoustic-vs-instrumental-space" id="toc-acoustic-vs-instrumental-space" class="nav-link" data-scroll-target="#acoustic-vs-instrumental-space">Acoustic vs Instrumental Space</a></li>
-  </ul></li>
-  <li><a href="#temporal-features" id="toc-temporal-features" class="nav-link" data-scroll-target="#temporal-features">Temporal Features</a>
-  <ul class="collapse">
-  <li><a href="#tempo-vs-danceability" id="toc-tempo-vs-danceability" class="nav-link" data-scroll-target="#tempo-vs-danceability">Tempo vs Danceability</a></li>
-  </ul></li>
-  <li><a href="#chromagram-analysis" id="toc-chromagram-analysis" class="nav-link" data-scroll-target="#chromagram-analysis">Chromagram Analysis</a>
-  <ul class="collapse">
-  <li><a href="#just-awake-opening-191-bpm" id="toc-just-awake-opening-191-bpm" class="nav-link" data-scroll-target="#just-awake-opening-191-bpm">Just Awake — Opening (191 BPM)</a></li>
-  <li><a href="#just-awake-ending-95.5-bpm" id="toc-just-awake-ending-95.5-bpm" class="nav-link" data-scroll-target="#just-awake-ending-95.5-bpm">Just Awake — Ending (95.5 BPM)</a></li>
-  </ul></li>
-  <li><a href="#self-similarity-matrices" id="toc-self-similarity-matrices" class="nav-link" data-scroll-target="#self-similarity-matrices">Self-Similarity Matrices</a>
-  <ul class="collapse">
-  <li><a href="#ssm-opening-191-bpm" id="toc-ssm-opening-191-bpm" class="nav-link" data-scroll-target="#ssm-opening-191-bpm">SSM — Opening (191 BPM)</a></li>
-  <li><a href="#ssm-ending-95.5-bpm" id="toc-ssm-ending-95.5-bpm" class="nav-link" data-scroll-target="#ssm-ending-95.5-bpm">SSM — Ending (95.5 BPM)</a></li>
-  </ul></li>
-  <li><a href="#classification-model" id="toc-classification-model" class="nav-link" data-scroll-target="#classification-model">Classification Model</a>
-  <ul class="collapse">
-  <li><a href="#approach" id="toc-approach" class="nav-link" data-scroll-target="#approach">Approach</a></li>
-  <li><a href="#baseline-model" id="toc-baseline-model" class="nav-link" data-scroll-target="#baseline-model">Baseline Model</a></li>
-  <li><a href="#feature-selected-model-stepaic" id="toc-feature-selected-model-stepaic" class="nav-link" data-scroll-target="#feature-selected-model-stepaic">Feature-Selected Model (stepAIC)</a></li>
-  <li><a href="#model-comparison" id="toc-model-comparison" class="nav-link" data-scroll-target="#model-comparison">Model Comparison</a></li>
-  </ul></li>
-  <li><a href="#contributions-conclusions" id="toc-contributions-conclusions" class="nav-link" data-scroll-target="#contributions-conclusions">Contributions &amp; Conclusions</a>
-  <ul class="collapse">
-  <li><a href="#key-findings" id="toc-key-findings" class="nav-link" data-scroll-target="#key-findings">Key Findings</a></li>
-  <li><a href="#implications" id="toc-implications" class="nav-link" data-scroll-target="#implications">Implications</a></li>
-  <li><a href="#methodological-notes" id="toc-methodological-notes" class="nav-link" data-scroll-target="#methodological-notes">Methodological Notes</a></li>
-  </ul></li>
+<nav class="navbar">
+  <span class="navbar-brand" onclick="navigate('about')">Anime OP/ED</span>
+  <ul class="navbar-links">
+    <li><a id="nav-about" onclick="navigate('about')">About</a></li>
+    <li><a id="nav-track" onclick="navigate('track')">Track Features</a></li>
+    <li><a id="nav-audio" onclick="navigate('audio')">Chroma & Temporal</a></li>
+    <li><a id="nav-model" onclick="navigate('model')">Classification</a></li>
+    <li><a id="nav-conclusion" onclick="navigate('conclusion')">Conclusion</a></li>
   </ul>
 </nav>
-</div>
-<div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-</div>
-<main class="content" id="quarto-document-content">
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="content">
+    <div class="page" id="page-about">
+      <div class="title-block">
+        <h1>Anime Openings vs Endings</h1>
+        <div class="subtitle">Computational Musicology Portfolio</div>
+        <div class="meta-grid">
+          <span class="label">Author</span><span class="value">Mehmed</span>
+          <span class="label">Affiliation</span><span class="value">Universiteit van Amsterdam</span>
+          <span class="label">Published</span><span class="value">March 2026</span>
+        </div>
+        <div class="abstract-box">Dataset: Anime openings/endings playlists + frame-level chroma exports uit Sonic Visualiser (`opening.csv`, `ending.csv`).</div>
+      </div>
 
-<header id="title-block-header" class="quarto-title-block default">
-<div class="quarto-title">
-<h1 class="title">Anime Openings vs Endings: A Computational Musicology Analysis</h1>
-</div>
+      <h2 id="a-question">Central Question</h2>
+      <p>Kunnen we met computational features betrouwbaar onderscheid maken tussen anime openings en endings?</p>
+      <div class="callout"><div class="callout-title">Focus</div><p>Track-level Spotify features gecombineerd met chromagrammen, self-similarity matrices en tempogrammen.</p></div>
 
-
-
-<div class="quarto-title-meta">
-
-    <div>
-    <div class="quarto-title-meta-heading">Author</div>
-    <div class="quarto-title-meta-contents">
-             <p>Mehmed </p>
-          </div>
-  </div>
-    
-    <div>
-    <div class="quarto-title-meta-heading">Published</div>
-    <div class="quarto-title-meta-contents">
-      <p class="date">March 1, 2026</p>
+      <h2 id="a-corpus">Corpus</h2>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Type</th><th>Tracks</th><th>Tempo</th><th>Energy</th><th>Loudness</th></tr></thead>
+        <tbody>
+          <tr><td>Opening</td><td>200</td><td>Hoger</td><td>Hoger</td><td>Luider</td></tr>
+          <tr><td>Ending</td><td>57</td><td>Lager</td><td>Lager</td><td>Zachter</td></tr>
+        </tbody>
+      </table></div>
     </div>
-  </div>
-  
-    
-  </div>
-  
 
+    <div class="page" id="page-track">
+      <h2 id="t-energy">Energy × Valence</h2>
+      <div class="figure"><img src="index_files/figure-html/energy-valence-1.png" alt="Energy valence" /><div class="figure-caption">Openings clusteren hoger op energy.</div></div>
 
-</header>
+      <h2 id="t-tempo">Tempo Distribution</h2>
+      <div class="figure"><img src="index_files/figure-html/tempo-dist-1.png" alt="Tempo distribution" /><div class="figure-caption">Openings gemiddeld sneller dan endings.</div></div>
 
+      <h2 id="t-loudness">Loudness</h2>
+      <div class="figure"><img src="index_files/figure-html/loudness-dist-1.png" alt="Loudness" /><div class="figure-caption">Openings luider gemasterd dan endings.</div></div>
+    </div>
 
-<section id="introduction" class="level1">
-<h1>Introduction</h1>
-<p>This portfolio analyzes computational music features from anime opening and ending tracks. The central question is: <strong>Can we reliably distinguish anime openings from endings using Spotify audio features and chroma analysis?</strong></p>
-</section>
-<section id="background" class="level1">
-<h1>Background</h1>
-<section id="corpus-overview" class="level2">
-<h2 class="anchored" data-anchor-id="corpus-overview">Corpus Overview</h2>
-<p>This corpus consists of two Spotify playlists:</p>
-<ul>
-<li><strong>Anime Openings (Intros)</strong>: 200 tracks<br>
-</li>
-<li><strong>Anime Endings</strong>: 57 tracks<br>
-</li>
-<li><strong>Total</strong>: 257 tracks</li>
-</ul>
-<p>Anime openings are typically fast and energetic, designed to excite viewers. Endings are slower and more melodic. This analysis uses computational features to test whether these perceived differences are measurable.</p>
-</section>
-<section id="focus-tracks" class="level2">
-<h2 class="anchored" data-anchor-id="focus-tracks">Focus Tracks</h2>
-<p>For detailed chroma and structural analysis, I focus on three key tracks:</p>
-<ol type="1">
-<li><strong>“Just Awake”</strong> (Fear, and Loathing in Las Vegas) — appears as <strong>both</strong> opening (191 BPM) and ending (95.5 BPM)</li>
-<li><strong>“Gats”</strong> — extreme outlier (Energy 0.193, Valence 0.055)</li>
-<li><strong>“East Bridge”</strong> — representative opening example</li>
-</ol>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(corpus, <span class="fu">aes</span>(<span class="at">x =</span> Tempo, <span class="at">y =</span> Energy, <span class="at">color =</span> type)) <span class="sc">+</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.35</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> focus_tracks, <span class="fu">aes</span>(<span class="at">x =</span> Tempo, <span class="at">y =</span> Energy),</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">fill =</span> <span class="st">"gold"</span>, <span class="at">shape =</span> <span class="dv">21</span>, <span class="at">size =</span> <span class="dv">5</span>, <span class="at">stroke =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text_repel</span>(<span class="at">data =</span> focus_tracks,</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">paste0</span>(<span class="st">`</span><span class="at">Track Name</span><span class="st">`</span>, <span class="st">" ("</span>, type, <span class="st">")"</span>)),</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>                  <span class="at">size =</span> <span class="dv">3</span>, <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">max.overlaps =</span> <span class="dv">20</span>,</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>                  <span class="at">min.segment.length =</span> <span class="dv">0</span>) <span class="sc">+</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Opening"</span> <span class="ot">=</span> <span class="st">"#e63946"</span>, <span class="st">"Ending"</span> <span class="ot">=</span> <span class="st">"#457b9d"</span>)) <span class="sc">+</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Focus tracks in context"</span>,</span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"Black/gold points = selected focus tracks"</span>,</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Tempo (BPM)"</span>, <span class="at">y =</span> <span class="st">"Energy"</span>, <span class="at">color =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/focus-plot-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-</section>
-<section id="track-level-features" class="level1">
-<h1>Track-Level Features</h1>
-<section id="corpus-overview-1" class="level2">
-<h2 class="anchored" data-anchor-id="corpus-overview-1">Corpus Overview</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>corpus <span class="sc">%&gt;%</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(type) <span class="sc">%&gt;%</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">n_tracks =</span> <span class="fu">n</span>(),</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_tempo =</span> <span class="fu">mean</span>(Tempo),</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_energy =</span> <span class="fu">mean</span>(Energy),</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_valence =</span> <span class="fu">mean</span>(Valence),</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_loudness =</span> <span class="fu">mean</span>(Loudness),</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_popularity =</span> <span class="fu">mean</span>(Popularity),</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">where</span>(is.numeric), <span class="sc">~</span><span class="fu">round</span>(.x, <span class="dv">3</span>))) <span class="sc">%&gt;%</span></span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="at">caption =</span> <span class="st">"Corpus summary statistics"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
-<caption>Corpus summary statistics</caption>
-<colgroup>
-<col style="width: 9%">
-<col style="width: 10%">
-<col style="width: 13%">
-<col style="width: 14%">
-<col style="width: 15%">
-<col style="width: 16%">
-<col style="width: 19%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">type</th>
-<th style="text-align: right;">n_tracks</th>
-<th style="text-align: right;">mean_tempo</th>
-<th style="text-align: right;">mean_energy</th>
-<th style="text-align: right;">mean_valence</th>
-<th style="text-align: right;">mean_loudness</th>
-<th style="text-align: right;">mean_popularity</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Ending</td>
-<td style="text-align: right;">57</td>
-<td style="text-align: right;">124.652</td>
-<td style="text-align: right;">0.755</td>
-<td style="text-align: right;">0.524</td>
-<td style="text-align: right;">-5.572</td>
-<td style="text-align: right;">28.912</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Opening</td>
-<td style="text-align: right;">200</td>
-<td style="text-align: right;">136.568</td>
-<td style="text-align: right;">0.912</td>
-<td style="text-align: right;">0.556</td>
-<td style="text-align: right;">-3.582</td>
-<td style="text-align: right;">34.195</td>
-</tr>
-</tbody>
-</table>
-</div>
-</div>
-</section>
-<section id="energy-valence-distribution" class="level2">
-<h2 class="anchored" data-anchor-id="energy-valence-distribution">Energy × Valence Distribution</h2>
-<p>Opening tracks cluster in the high-energy, moderate-valence region. Endings are more distributed across lower-energy zones.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(corpus, <span class="fu">aes</span>(<span class="at">x =</span> Valence, <span class="at">y =</span> Energy, <span class="at">color =</span> type)) <span class="sc">+</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">median</span>(corpus<span class="sc">$</span>Valence), <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="fu">median</span>(corpus<span class="sc">$</span>Energy), <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.45</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Opening"</span> <span class="ot">=</span> <span class="st">"#e63946"</span>, <span class="st">"Ending"</span> <span class="ot">=</span> <span class="st">"#457b9d"</span>)) <span class="sc">+</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Energy × Valence Distribution"</span>,</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"Dashed lines = corpus medians"</span>,</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Valence"</span>, <span class="at">y =</span> <span class="st">"Energy"</span>, <span class="at">color =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/energy-valence-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-<section id="tempo-distribution" class="level2">
-<h2 class="anchored" data-anchor-id="tempo-distribution">Tempo Distribution</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(corpus, <span class="fu">aes</span>(<span class="at">x =</span> Tempo, <span class="at">fill =</span> type)) <span class="sc">+</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="dv">8</span>, <span class="at">position =</span> <span class="st">"identity"</span>, <span class="at">alpha =</span> <span class="fl">0.65</span>) <span class="sc">+</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">191</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>,</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> <span class="st">"#e63946"</span>, <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fl">95.5</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>,</span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> <span class="st">"#457b9d"</span>, <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">194</span>, <span class="at">y =</span> <span class="dv">17</span>, <span class="at">label =</span> <span class="st">"Just Awake Opening</span><span class="sc">\n</span><span class="st">191 BPM"</span>,</span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>           <span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">size =</span> <span class="fl">2.8</span>, <span class="at">color =</span> <span class="st">"#e63946"</span>) <span class="sc">+</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">98</span>, <span class="at">y =</span> <span class="dv">17</span>, <span class="at">label =</span> <span class="st">"Just Awake Ending</span><span class="sc">\n</span><span class="st">95.5 BPM"</span>,</span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>           <span class="at">hjust =</span> <span class="dv">0</span>, <span class="at">size =</span> <span class="fl">2.8</span>, <span class="at">color =</span> <span class="st">"#457b9d"</span>) <span class="sc">+</span></span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Opening"</span> <span class="ot">=</span> <span class="st">"#e63946"</span>, <span class="st">"Ending"</span> <span class="ot">=</span> <span class="st">"#457b9d"</span>)) <span class="sc">+</span></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Tempo Distribution"</span>,</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Tempo (BPM)"</span>, <span class="at">y =</span> <span class="st">"Count"</span>, <span class="at">fill =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/tempo-dist-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-</section>
-<section id="chroma-features-pitch" class="level1">
-<h1>Chroma Features (Pitch)</h1>
-<section id="pitch-class-distribution" class="level2">
-<h2 class="anchored" data-anchor-id="pitch-class-distribution">Pitch Class Distribution</h2>
-<p>Spotify’s key detection reveals that anime openings and endings use distinct key profiles.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>corpus <span class="sc">%&gt;%</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(pitch_class <span class="sc">!=</span> <span class="st">"?"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(pitch_class, type) <span class="sc">%&gt;%</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">complete</span>(pitch_class, type, <span class="at">fill =</span> <span class="fu">list</span>(<span class="at">n =</span> <span class="dv">0</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> pitch_class, <span class="at">y =</span> n, <span class="at">fill =</span> type)) <span class="sc">+</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="st">"dodge"</span>, <span class="at">alpha =</span> <span class="fl">0.85</span>, <span class="at">width =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Opening"</span> <span class="ot">=</span> <span class="st">"#e63946"</span>, <span class="st">"Ending"</span> <span class="ot">=</span> <span class="st">"#457b9d"</span>)) <span class="sc">+</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Pitch Class Distribution"</span>,</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Pitch Class"</span>, <span class="at">y =</span> <span class="st">"Count"</span>, <span class="at">fill =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/key-distribution-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-<section id="major-vs-minor-effect-on-valence" class="level2">
-<h2 class="anchored" data-anchor-id="major-vs-minor-effect-on-valence">Major vs Minor: Effect on Valence</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(corpus, <span class="fu">aes</span>(<span class="at">x =</span> mode_label, <span class="at">y =</span> Valence, <span class="at">fill =</span> type)) <span class="sc">+</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha =</span> <span class="fl">0.75</span>, <span class="at">outlier.shape =</span> <span class="dv">16</span>, <span class="at">outlier.alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Opening"</span> <span class="ot">=</span> <span class="st">"#e63946"</span>, <span class="st">"Ending"</span> <span class="ot">=</span> <span class="st">"#457b9d"</span>)) <span class="sc">+</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Major vs Minor: Effect on Valence"</span>,</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Mode"</span>, <span class="at">y =</span> <span class="st">"Valence"</span>, <span class="at">fill =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/mode-valence-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-</section>
-<section id="loudness" class="level1">
-<h1>Loudness</h1>
-<section id="track-level-loudness" class="level2">
-<h2 class="anchored" data-anchor-id="track-level-loudness">Track-Level Loudness</h2>
-<p>Openings are systematically louder than endings, contributing to their perceived intensity.</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(corpus, <span class="fu">aes</span>(<span class="at">x =</span> type, <span class="at">y =</span> Loudness, <span class="at">fill =</span> type)) <span class="sc">+</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_violin</span>(<span class="at">alpha =</span> <span class="fl">0.65</span>, <span class="at">trim =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">width =</span> <span class="fl">0.12</span>, <span class="at">fill =</span> <span class="st">"white"</span>, <span class="at">outlier.alpha =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Opening"</span> <span class="ot">=</span> <span class="st">"#e63946"</span>, <span class="st">"Ending"</span> <span class="ot">=</span> <span class="st">"#457b9d"</span>)) <span class="sc">+</span></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Loudness Distribution"</span>,</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Loudness (dB)"</span>, <span class="at">fill =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/loudness-dist-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-<section id="loudness-vs-energy" class="level2">
-<h2 class="anchored" data-anchor-id="loudness-vs-energy">Loudness vs Energy</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(corpus, <span class="fu">aes</span>(<span class="at">x =</span> Loudness, <span class="at">y =</span> Energy, <span class="at">color =</span> type)) <span class="sc">+</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">TRUE</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Opening"</span> <span class="ot">=</span> <span class="st">"#e63946"</span>, <span class="st">"Ending"</span> <span class="ot">=</span> <span class="st">"#457b9d"</span>)) <span class="sc">+</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Loudness and Energy Relationship"</span>,</span>
-<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Loudness (dB)"</span>, <span class="at">y =</span> <span class="st">"Energy"</span>, <span class="at">color =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/loudness-energy-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-<section id="frame-level-energy-just-awake-opening" class="level2">
-<h2 class="anchored" data-anchor-id="frame-level-energy-just-awake-opening">Frame-Level Energy: “Just Awake” Opening</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make_tempogram</span>(opening_chroma,</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Frame-level energy evolution – Just Awake Opening (191 BPM)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/tempogram-open-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-<section id="frame-level-energy-just-awake-ending" class="level2">
-<h2 class="anchored" data-anchor-id="frame-level-energy-just-awake-ending">Frame-Level Energy: “Just Awake” Ending</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make_tempogram</span>(ending_chroma,</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Frame-level energy evolution – Just Awake Ending (95.5 BPM)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/tempogram-end-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>The same song structure appears in both versions. However, the opening’s higher tempo creates more frequent energy fluctuations, while the ending shows longer sustained sections. This demonstrates how <strong>tempo changes affect section perception</strong> even with identical harmonic content.</p>
-</section>
-</section>
-<section id="timbre" class="level1">
-<h1>Timbre</h1>
-<section id="timbre-feature-distributions" class="level2">
-<h2 class="anchored" data-anchor-id="timbre-feature-distributions">Timbre Feature Distributions</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>timbre_long <span class="ot">&lt;-</span> corpus <span class="sc">%&gt;%</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(type, Speechiness, Acousticness, Instrumentalness, Liveness) <span class="sc">%&gt;%</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>type, <span class="at">names_to =</span> <span class="st">"feature"</span>, <span class="at">values_to =</span> <span class="st">"value"</span>)</span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(timbre_long, <span class="fu">aes</span>(<span class="at">x =</span> feature, <span class="at">y =</span> value, <span class="at">fill =</span> type)) <span class="sc">+</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha =</span> <span class="fl">0.75</span>, <span class="at">outlier.alpha =</span> <span class="fl">0.35</span>) <span class="sc">+</span></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Opening"</span> <span class="ot">=</span> <span class="st">"#e63946"</span>, <span class="st">"Ending"</span> <span class="ot">=</span> <span class="st">"#457b9d"</span>)) <span class="sc">+</span></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Timbre-Related Spotify Features"</span>,</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Feature value"</span>, <span class="at">fill =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">25</span>, <span class="at">hjust =</span> <span class="dv">1</span>),</span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/timbre-features-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-<section id="acoustic-vs-instrumental-space" class="level2">
-<h2 class="anchored" data-anchor-id="acoustic-vs-instrumental-space">Acoustic vs Instrumental Space</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(corpus, <span class="fu">aes</span>(<span class="at">x =</span> Acousticness, <span class="at">y =</span> Instrumentalness, <span class="at">color =</span> type)) <span class="sc">+</span></span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.55</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">se =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Opening"</span> <span class="ot">=</span> <span class="st">"#e63946"</span>, <span class="st">"Ending"</span> <span class="ot">=</span> <span class="st">"#457b9d"</span>)) <span class="sc">+</span></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Timbre Space: Acoustic vs Instrumental"</span>,</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Acousticness"</span>, <span class="at">y =</span> <span class="st">"Instrumentalness"</span>, <span class="at">color =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/timbre-space-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-</section>
-<section id="temporal-features" class="level1">
-<h1>Temporal Features</h1>
-<section id="tempo-vs-danceability" class="level2">
-<h2 class="anchored" data-anchor-id="tempo-vs-danceability">Tempo vs Danceability</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(corpus, <span class="fu">aes</span>(<span class="at">x =</span> Tempo, <span class="at">y =</span> Danceability, <span class="at">color =</span> type)) <span class="sc">+</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.45</span>, <span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">se =</span> <span class="cn">TRUE</span>, <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Opening"</span> <span class="ot">=</span> <span class="st">"#e63946"</span>, <span class="st">"Ending"</span> <span class="ot">=</span> <span class="st">"#457b9d"</span>)) <span class="sc">+</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Tempo vs Danceability"</span>,</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Tempo (BPM)"</span>, <span class="at">y =</span> <span class="st">"Danceability"</span>, <span class="at">color =</span> <span class="cn">NULL</span>) <span class="sc">+</span></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/tempo-dance-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-</section>
-<section id="chromagram-analysis" class="level1">
-<h1>Chromagram Analysis</h1>
-<section id="just-awake-opening-191-bpm" class="level2">
-<h2 class="anchored" data-anchor-id="just-awake-opening-191-bpm">Just Awake — Opening (191 BPM)</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make_chromagram</span>(opening_chroma,</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Chromagram: Just Awake – Opening (191 BPM)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/chroma-open-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>Raw chroma analysis using <strong>Sonic Visualiser NNLS Chroma</strong> extraction. Dominant pitch classes: C · G# · D# forming a <strong>C-minor triad</strong> — characteristic of metalcore.</p>
-</section>
-<section id="just-awake-ending-95.5-bpm" class="level2">
-<h2 class="anchored" data-anchor-id="just-awake-ending-95.5-bpm">Just Awake — Ending (95.5 BPM)</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make_chromagram</span>(ending_chroma,</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Chromagram: Just Awake – Ending (95.5 BPM)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/chroma-end-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>Identical harmonic content, but stretched to double duration. The ending’s slower pace creates a perceptually different experience despite the same chord progression.</p>
-</section>
-</section>
-<section id="self-similarity-matrices" class="level1">
-<h1>Self-Similarity Matrices</h1>
-<section id="ssm-opening-191-bpm" class="level2">
-<h2 class="anchored" data-anchor-id="ssm-opening-191-bpm">SSM — Opening (191 BPM)</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make_chroma_ssm</span>(opening_chroma,</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Self-Similarity Matrix: Just Awake Opening (191 BPM)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/ssm-open-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>Diagonal blocks reveal recurring sections (verses, choruses). The high tempo creates compact block patterns.</p>
-</section>
-<section id="ssm-ending-95.5-bpm" class="level2">
-<h2 class="anchored" data-anchor-id="ssm-ending-95.5-bpm">SSM — Ending (95.5 BPM)</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make_chroma_ssm</span>(ending_chroma,</span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Self-Similarity Matrix: Just Awake Ending (95.5 BPM)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/ssm-end-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>The same structural sections appear at different positions due to tempo doubling. Off-diagonal blocks indicate harmonically similar passages.</p>
-</section>
-</section>
-<section id="classification-model" class="level1">
-<h1>Classification Model</h1>
-<section id="approach" class="level2">
-<h2 class="anchored" data-anchor-id="approach">Approach</h2>
-<p>To answer the central question — <em>can we reliably distinguish openings from endings?</em> — I trained a logistic regression classifier on Spotify track-level features.</p>
-<p>Strategy: 1. <strong>Baseline model</strong>: All available features 2. <strong>Feature-selected model</strong>: Using stepwise AIC selection 3. <strong>Evaluation</strong>: 80/20 stratified train-test split</p>
-</section>
-<section id="baseline-model" class="level2">
-<h2 class="anchored" data-anchor-id="baseline-model">Baseline Model</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2026</span>)</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>open_idx <span class="ot">&lt;-</span> <span class="fu">which</span>(corpus<span class="sc">$</span>type <span class="sc">==</span> <span class="st">"Opening"</span>)</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>end_idx  <span class="ot">&lt;-</span> <span class="fu">which</span>(corpus<span class="sc">$</span>type <span class="sc">==</span> <span class="st">"Ending"</span>)</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>train_idx <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sample</span>(open_idx, <span class="fu">floor</span>(<span class="fl">0.8</span> <span class="sc">*</span> <span class="fu">length</span>(open_idx))),</span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">sample</span>(end_idx,  <span class="fu">floor</span>(<span class="fl">0.8</span> <span class="sc">*</span> <span class="fu">length</span>(end_idx)))</span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>train_df <span class="ot">&lt;-</span> corpus[train_idx, ]</span>
-<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>test_df  <span class="ot">&lt;-</span> corpus[<span class="sc">-</span>train_idx, ]</span>
-<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>train_df<span class="sc">$</span>type <span class="ot">&lt;-</span> <span class="fu">factor</span>(train_df<span class="sc">$</span>type, <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Ending"</span>, <span class="st">"Opening"</span>))</span>
-<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>test_df<span class="sc">$</span>type  <span class="ot">&lt;-</span> <span class="fu">factor</span>(test_df<span class="sc">$</span>type,  <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Ending"</span>, <span class="st">"Opening"</span>))</span>
-<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>model_baseline <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
-<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>  type <span class="sc">~</span> Energy <span class="sc">+</span> Valence <span class="sc">+</span> Tempo <span class="sc">+</span> Loudness <span class="sc">+</span> Danceability <span class="sc">+</span> Key <span class="sc">+</span> Mode <span class="sc">+</span> duration_s,</span>
-<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> train_df,</span>
-<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">family =</span> binomial</span>
-<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>pred_prob_baseline <span class="ot">&lt;-</span> <span class="fu">predict</span>(model_baseline, <span class="at">newdata =</span> test_df, <span class="at">type =</span> <span class="st">"response"</span>)</span>
-<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>pred_cls_baseline  <span class="ot">&lt;-</span> <span class="fu">if_else</span>(pred_prob_baseline <span class="sc">&gt;=</span> <span class="fl">0.5</span>, <span class="st">"Opening"</span>, <span class="st">"Ending"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">factor</span>(<span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Ending"</span>, <span class="st">"Opening"</span>))</span>
-<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a>cm_baseline  <span class="ot">&lt;-</span> <span class="fu">table</span>(<span class="at">Actual =</span> test_df<span class="sc">$</span>type, <span class="at">Predicted =</span> pred_cls_baseline)</span>
-<span id="cb18-28"><a href="#cb18-28" aria-hidden="true" tabindex="-1"></a>acc_baseline <span class="ot">&lt;-</span> <span class="fu">mean</span>(pred_cls_baseline <span class="sc">==</span> test_df<span class="sc">$</span>type)</span>
-<span id="cb18-29"><a href="#cb18-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-30"><a href="#cb18-30" aria-hidden="true" tabindex="-1"></a><span class="fu">as.data.frame</span>(cm_baseline) <span class="sc">%&gt;%</span></span>
-<span id="cb18-31"><a href="#cb18-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Predicted, <span class="at">y =</span> Actual, <span class="at">fill =</span> Freq)) <span class="sc">+</span></span>
-<span id="cb18-32"><a href="#cb18-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
-<span id="cb18-33"><a href="#cb18-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> Freq), <span class="at">color =</span> <span class="st">"white"</span>, <span class="at">fontface =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="dv">5</span>) <span class="sc">+</span></span>
-<span id="cb18-34"><a href="#cb18-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_c</span>(<span class="at">option =</span> <span class="st">"magma"</span>) <span class="sc">+</span></span>
-<span id="cb18-35"><a href="#cb18-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb18-36"><a href="#cb18-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="fu">paste0</span>(<span class="st">"Baseline Model: Accuracy = "</span>, <span class="fu">round</span>(acc_baseline, <span class="dv">3</span>)),</span>
-<span id="cb18-37"><a href="#cb18-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Predicted"</span>, <span class="at">y =</span> <span class="st">"Actual"</span></span>
-<span id="cb18-38"><a href="#cb18-38" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb18-39"><a href="#cb18-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/clf-baseline-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-<section id="feature-selected-model-stepaic" class="level2">
-<h2 class="anchored" data-anchor-id="feature-selected-model-stepaic">Feature-Selected Model (stepAIC)</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>model_step <span class="ot">&lt;-</span> MASS<span class="sc">::</span><span class="fu">stepAIC</span>(model_baseline, <span class="at">direction =</span> <span class="st">"both"</span>, <span class="at">trace =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>pred_prob_step <span class="ot">&lt;-</span> <span class="fu">predict</span>(model_step, <span class="at">newdata =</span> test_df, <span class="at">type =</span> <span class="st">"response"</span>)</span>
-<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>pred_cls_step  <span class="ot">&lt;-</span> <span class="fu">if_else</span>(pred_prob_step <span class="sc">&gt;=</span> <span class="fl">0.5</span>, <span class="st">"Opening"</span>, <span class="st">"Ending"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">factor</span>(<span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"Ending"</span>, <span class="st">"Opening"</span>))</span>
-<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>cm_step  <span class="ot">&lt;-</span> <span class="fu">table</span>(<span class="at">Actual =</span> test_df<span class="sc">$</span>type, <span class="at">Predicted =</span> pred_cls_step)</span>
-<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>acc_step <span class="ot">&lt;-</span> <span class="fu">mean</span>(pred_cls_step <span class="sc">==</span> test_df<span class="sc">$</span>type)</span>
-<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a><span class="fu">as.data.frame</span>(cm_step) <span class="sc">%&gt;%</span></span>
-<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Predicted, <span class="at">y =</span> Actual, <span class="at">fill =</span> Freq)) <span class="sc">+</span></span>
-<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
-<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> Freq), <span class="at">color =</span> <span class="st">"white"</span>, <span class="at">fontface =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="dv">5</span>) <span class="sc">+</span></span>
-<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_c</span>(<span class="at">option =</span> <span class="st">"plasma"</span>) <span class="sc">+</span></span>
-<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="fu">paste0</span>(<span class="st">"Feature-Selected Model: Accuracy = "</span>, <span class="fu">round</span>(acc_step, <span class="dv">3</span>)),</span>
-<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="fu">paste0</span>(<span class="st">"Selected features: "</span>, <span class="fu">paste</span>(<span class="fu">attr</span>(<span class="fu">terms</span>(model_step), <span class="st">"term.labels"</span>), <span class="at">collapse =</span> <span class="st">", "</span>)),</span>
-<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Predicted"</span>, <span class="at">y =</span> <span class="st">"Actual"</span></span>
-<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/clf-improved-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-<section id="model-comparison" class="level2">
-<h2 class="anchored" data-anchor-id="model-comparison">Model Comparison</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>results_tbl <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">model =</span> <span class="fu">c</span>(<span class="st">"Baseline</span><span class="sc">\n</span><span class="st">(all features)"</span>, <span class="st">"Feature-Selected</span><span class="sc">\n</span><span class="st">(stepAIC)"</span>),</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">accuracy =</span> <span class="fu">c</span>(acc_baseline, acc_step)</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(results_tbl, <span class="fu">aes</span>(<span class="at">x =</span> model, <span class="at">y =</span> accuracy, <span class="at">fill =</span> model)) <span class="sc">+</span></span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">width =</span> <span class="fl">0.5</span>, <span class="at">alpha =</span> <span class="fl">0.9</span>) <span class="sc">+</span></span>
-<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">round</span>(accuracy, <span class="dv">4</span>)), <span class="at">vjust =</span> <span class="sc">-</span><span class="fl">0.5</span>, <span class="at">fontface =</span> <span class="st">"bold"</span>) <span class="sc">+</span></span>
-<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Baseline</span><span class="sc">\n</span><span class="st">(all features)"</span> <span class="ot">=</span> <span class="st">"#457b9d"</span>,</span>
-<span id="cb20-10"><a href="#cb20-10" aria-hidden="true" tabindex="-1"></a>                               <span class="st">"Feature-Selected</span><span class="sc">\n</span><span class="st">(stepAIC)"</span> <span class="ot">=</span> <span class="st">"#e63946"</span>)) <span class="sc">+</span></span>
-<span id="cb20-11"><a href="#cb20-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
-<span id="cb20-12"><a href="#cb20-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb20-13"><a href="#cb20-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Classification Accuracy Comparison"</span>,</span>
-<span id="cb20-14"><a href="#cb20-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Test set (20% of corpus, stratified split)"</span>,</span>
-<span id="cb20-15"><a href="#cb20-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">y =</span> <span class="st">"Accuracy"</span></span>
-<span id="cb20-16"><a href="#cb20-16" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb20-17"><a href="#cb20-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">12</span>) <span class="sc">+</span></span>
-<span id="cb20-18"><a href="#cb20-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="index_files/figure-html/clf-compare-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>The feature-selected model generalizes slightly better, suggesting that a minimal feature set is sufficient and possibly more robust.</p>
-</section>
-</section>
-<section id="contributions-conclusions" class="level1">
-<h1>Contributions &amp; Conclusions</h1>
-<section id="key-findings" class="level2">
-<h2 class="anchored" data-anchor-id="key-findings">Key Findings</h2>
-<ol type="1">
-<li><strong>Openings are systematically higher-energy</strong>: Mean Energy 0.631 (Opening) vs 0.471 (Ending).</li>
-<li><strong>Tempo drives perceptual differences</strong>: The same composition (“Just Awake”) at 191 BPM (opening) vs 95.5 BPM (ending) creates distinct listener experiences.</li>
-<li><strong>Classification is achievable</strong>: A simple logistic regression reaches &gt;80% accuracy, suggesting clear feature-level separation between the two categories.</li>
-<li><strong>Minimal features suffice</strong>: Energy, Danceability, Mode, and Duration alone predict type nearly as well as all features combined.</li>
-</ol>
-</section>
-<section id="implications" class="level2">
-<h2 class="anchored" data-anchor-id="implications">Implications</h2>
-<ul>
-<li><strong>For composers</strong>: Arrangement choices (tempo, dynamics) matter more than harmonic content for opening/ending perception.</li>
-<li><strong>For music supervisors</strong>: Spotify features can pre-filter candidates by type (opening vs ending).</li>
-<li><strong>For musicology students</strong>: This demonstrates reproducible corpus analysis combining Spotify API data with frame-level audio features.</li>
-</ul>
-</section>
-<section id="methodological-notes" class="level2">
-<h2 class="anchored" data-anchor-id="methodological-notes">Methodological Notes</h2>
-<ul>
-<li><strong>Strengths</strong>: Real Spotify + Sonic Visualiser data; no synthetic generation; stratified train-test split.</li>
-<li><strong>Limitations</strong>: No hand-labeled segmentations; frame-level analysis limited to pitch/energy; class imbalance (200 openings, 57 endings).</li>
-<li><strong>Reproducibility</strong>: All analyses use the four provided CSV files. No external data or models beyond tidyverse + compmus.</li>
-</ul>
-</section>
-</section>
+    <div class="page" id="page-audio">
+      <h2 id="au-chroma">Chroma: Just Awake</h2>
+      <h3>Opening (191 BPM)</h3>
+      <div class="figure"><img src="index_files/figure-html/chroma-open-1.png" alt="Chromagram opening" /></div>
+      <h3>Ending (95.5 BPM)</h3>
+      <div class="figure"><img src="index_files/figure-html/chroma-end-1.png" alt="Chromagram ending" /></div>
 
-</main>
-<!-- /main column -->
-<script id="quarto-html-after-body" type="application/javascript">
-window.document.addEventListener("DOMContentLoaded", function (event) {
-  const toggleBodyColorMode = (bsSheetEl) => {
-    const mode = bsSheetEl.getAttribute("data-mode");
-    const bodyEl = window.document.querySelector("body");
-    if (mode === "dark") {
-      bodyEl.classList.add("quarto-dark");
-      bodyEl.classList.remove("quarto-light");
-    } else {
-      bodyEl.classList.add("quarto-light");
-      bodyEl.classList.remove("quarto-dark");
-    }
-  }
-  const toggleBodyColorPrimary = () => {
-    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
-    if (bsSheetEl) {
-      toggleBodyColorMode(bsSheetEl);
-    }
-  }
-  toggleBodyColorPrimary();  
-  const icon = "";
-  const anchorJS = new window.AnchorJS();
-  anchorJS.options = {
-    placement: 'right',
-    icon: icon
-  };
-  anchorJS.add('.anchored');
-  const isCodeAnnotation = (el) => {
-    for (const clz of el.classList) {
-      if (clz.startsWith('code-annotation-')) {                     
-        return true;
-      }
-    }
-    return false;
-  }
-  const onCopySuccess = function(e) {
-    // button target
-    const button = e.trigger;
-    // don't keep focus
-    button.blur();
-    // flash "checked"
-    button.classList.add('code-copy-button-checked');
-    var currentTitle = button.getAttribute("title");
-    button.setAttribute("title", "Copied!");
-    let tooltip;
-    if (window.bootstrap) {
-      button.setAttribute("data-bs-toggle", "tooltip");
-      button.setAttribute("data-bs-placement", "left");
-      button.setAttribute("data-bs-title", "Copied!");
-      tooltip = new bootstrap.Tooltip(button, 
-        { trigger: "manual", 
-          customClass: "code-copy-button-tooltip",
-          offset: [0, -8]});
-      tooltip.show();    
-    }
-    setTimeout(function() {
-      if (tooltip) {
-        tooltip.hide();
-        button.removeAttribute("data-bs-title");
-        button.removeAttribute("data-bs-toggle");
-        button.removeAttribute("data-bs-placement");
-      }
-      button.setAttribute("title", currentTitle);
-      button.classList.remove('code-copy-button-checked');
-    }, 1000);
-    // clear code selection
-    e.clearSelection();
-  }
-  const getTextToCopy = function(trigger) {
-      const codeEl = trigger.previousElementSibling.cloneNode(true);
-      for (const childEl of codeEl.children) {
-        if (isCodeAnnotation(childEl)) {
-          childEl.remove();
-        }
-      }
-      return codeEl.innerText;
-  }
-  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
-    text: getTextToCopy
-  });
-  clipboard.on('success', onCopySuccess);
-  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
-    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
-      text: getTextToCopy,
-      container: window.document.getElementById('quarto-embedded-source-code-modal')
-    });
-    clipboardModal.on('success', onCopySuccess);
-  }
-    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
-    var mailtoRegex = new RegExp(/^mailto:/);
-      var filterRegex = new RegExp('/' + window.location.host + '/');
-    var isInternal = (href) => {
-        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
-    }
-    // Inspect non-navigation links and adorn them if external
- 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
-    for (var i=0; i<links.length; i++) {
-      const link = links[i];
-      if (!isInternal(link.href)) {
-        // undo the damage that might have been done by quarto-nav.js in the case of
-        // links that we want to consider external
-        if (link.dataset.originalHref !== undefined) {
-          link.href = link.dataset.originalHref;
-        }
-      }
-    }
-  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
-    const config = {
-      allowHTML: true,
-      maxWidth: 500,
-      delay: 100,
-      arrow: false,
-      appendTo: function(el) {
-          return el.parentElement;
-      },
-      interactive: true,
-      interactiveBorder: 10,
-      theme: 'quarto',
-      placement: 'bottom-start',
-    };
-    if (contentFn) {
-      config.content = contentFn;
-    }
-    if (onTriggerFn) {
-      config.onTrigger = onTriggerFn;
-    }
-    if (onUntriggerFn) {
-      config.onUntrigger = onUntriggerFn;
-    }
-    window.tippy(el, config); 
-  }
-  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
-  for (var i=0; i<noterefs.length; i++) {
-    const ref = noterefs[i];
-    tippyHover(ref, function() {
-      // use id or data attribute instead here
-      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
-      try { href = new URL(href).hash; } catch {}
-      const id = href.replace(/^#\/?/, "");
-      const note = window.document.getElementById(id);
-      if (note) {
-        return note.innerHTML;
-      } else {
-        return "";
-      }
-    });
-  }
-  const xrefs = window.document.querySelectorAll('a.quarto-xref');
-  const processXRef = (id, note) => {
-    // Strip column container classes
-    const stripColumnClz = (el) => {
-      el.classList.remove("page-full", "page-columns");
-      if (el.children) {
-        for (const child of el.children) {
-          stripColumnClz(child);
-        }
-      }
-    }
-    stripColumnClz(note)
-    if (id === null || id.startsWith('sec-')) {
-      // Special case sections, only their first couple elements
-      const container = document.createElement("div");
-      if (note.children && note.children.length > 2) {
-        container.appendChild(note.children[0].cloneNode(true));
-        for (let i = 1; i < note.children.length; i++) {
-          const child = note.children[i];
-          if (child.tagName === "P" && child.innerText === "") {
-            continue;
-          } else {
-            container.appendChild(child.cloneNode(true));
-            break;
-          }
-        }
-        if (window.Quarto?.typesetMath) {
-          window.Quarto.typesetMath(container);
-        }
-        return container.innerHTML
-      } else {
-        if (window.Quarto?.typesetMath) {
-          window.Quarto.typesetMath(note);
-        }
-        return note.innerHTML;
-      }
-    } else {
-      // Remove any anchor links if they are present
-      const anchorLink = note.querySelector('a.anchorjs-link');
-      if (anchorLink) {
-        anchorLink.remove();
-      }
-      if (window.Quarto?.typesetMath) {
-        window.Quarto.typesetMath(note);
-      }
-      if (note.classList.contains("callout")) {
-        return note.outerHTML;
-      } else {
-        return note.innerHTML;
-      }
-    }
-  }
-  for (var i=0; i<xrefs.length; i++) {
-    const xref = xrefs[i];
-    tippyHover(xref, undefined, function(instance) {
-      instance.disable();
-      let url = xref.getAttribute('href');
-      let hash = undefined; 
-      if (url.startsWith('#')) {
-        hash = url;
-      } else {
-        try { hash = new URL(url).hash; } catch {}
-      }
-      if (hash) {
-        const id = hash.replace(/^#\/?/, "");
-        const note = window.document.getElementById(id);
-        if (note !== null) {
-          try {
-            const html = processXRef(id, note.cloneNode(true));
-            instance.setContent(html);
-          } finally {
-            instance.enable();
-            instance.show();
-          }
-        } else {
-          // See if we can fetch this
-          fetch(url.split('#')[0])
-          .then(res => res.text())
-          .then(html => {
-            const parser = new DOMParser();
-            const htmlDoc = parser.parseFromString(html, "text/html");
-            const note = htmlDoc.getElementById(id);
-            if (note !== null) {
-              const html = processXRef(id, note);
-              instance.setContent(html);
-            } 
-          }).finally(() => {
-            instance.enable();
-            instance.show();
-          });
-        }
-      } else {
-        // See if we can fetch a full url (with no hash to target)
-        // This is a special case and we should probably do some content thinning / targeting
-        fetch(url)
-        .then(res => res.text())
-        .then(html => {
-          const parser = new DOMParser();
-          const htmlDoc = parser.parseFromString(html, "text/html");
-          const note = htmlDoc.querySelector('main.content');
-          if (note !== null) {
-            // This should only happen for chapter cross references
-            // (since there is no id in the URL)
-            // remove the first header
-            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
-              note.children[0].remove();
-            }
-            const html = processXRef(null, note);
-            instance.setContent(html);
-          } 
-        }).finally(() => {
-          instance.enable();
-          instance.show();
-        });
-      }
-    }, function(instance) {
-    });
-  }
-      let selectedAnnoteEl;
-      const selectorForAnnotation = ( cell, annotation) => {
-        let cellAttr = 'data-code-cell="' + cell + '"';
-        let lineAttr = 'data-code-annotation="' +  annotation + '"';
-        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
-        return selector;
-      }
-      const selectCodeLines = (annoteEl) => {
-        const doc = window.document;
-        const targetCell = annoteEl.getAttribute("data-target-cell");
-        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
-        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
-        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
-        const lineIds = lines.map((line) => {
-          return targetCell + "-" + line;
-        })
-        let top = null;
-        let height = null;
-        let parent = null;
-        if (lineIds.length > 0) {
-            //compute the position of the single el (top and bottom and make a div)
-            const el = window.document.getElementById(lineIds[0]);
-            top = el.offsetTop;
-            height = el.offsetHeight;
-            parent = el.parentElement.parentElement;
-          if (lineIds.length > 1) {
-            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
-            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
-            height = bottom - top;
-          }
-          if (top !== null && height !== null && parent !== null) {
-            // cook up a div (if necessary) and position it 
-            let div = window.document.getElementById("code-annotation-line-highlight");
-            if (div === null) {
-              div = window.document.createElement("div");
-              div.setAttribute("id", "code-annotation-line-highlight");
-              div.style.position = 'absolute';
-              parent.appendChild(div);
-            }
-            div.style.top = top - 2 + "px";
-            div.style.height = height + 4 + "px";
-            div.style.left = 0;
-            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
-            if (gutterDiv === null) {
-              gutterDiv = window.document.createElement("div");
-              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
-              gutterDiv.style.position = 'absolute';
-              const codeCell = window.document.getElementById(targetCell);
-              const gutter = codeCell.querySelector('.code-annotation-gutter');
-              gutter.appendChild(gutterDiv);
-            }
-            gutterDiv.style.top = top - 2 + "px";
-            gutterDiv.style.height = height + 4 + "px";
-          }
-          selectedAnnoteEl = annoteEl;
-        }
-      };
-      const unselectCodeLines = () => {
-        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
-        elementsIds.forEach((elId) => {
-          const div = window.document.getElementById(elId);
-          if (div) {
-            div.remove();
-          }
-        });
-        selectedAnnoteEl = undefined;
-      };
-        // Handle positioning of the toggle
-    window.addEventListener(
-      "resize",
-      throttle(() => {
-        elRect = undefined;
-        if (selectedAnnoteEl) {
-          selectCodeLines(selectedAnnoteEl);
-        }
-      }, 10)
-    );
-    function throttle(fn, ms) {
-    let throttle = false;
-    let timer;
-      return (...args) => {
-        if(!throttle) { // first call gets through
-            fn.apply(this, args);
-            throttle = true;
-        } else { // all the others get throttled
-            if(timer) clearTimeout(timer); // cancel #2
-            timer = setTimeout(() => {
-              fn.apply(this, args);
-              timer = throttle = false;
-            }, ms);
-        }
-      };
-    }
-      // Attach click handler to the DT
-      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
-      for (const annoteDlNode of annoteDls) {
-        annoteDlNode.addEventListener('click', (event) => {
-          const clickedEl = event.target;
-          if (clickedEl !== selectedAnnoteEl) {
-            unselectCodeLines();
-            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
-            if (activeEl) {
-              activeEl.classList.remove('code-annotation-active');
-            }
-            selectCodeLines(clickedEl);
-            clickedEl.classList.add('code-annotation-active');
-          } else {
-            // Unselect the line
-            unselectCodeLines();
-            clickedEl.classList.remove('code-annotation-active');
-          }
-        });
-      }
-  const findCites = (el) => {
-    const parentEl = el.parentElement;
-    if (parentEl) {
-      const cites = parentEl.dataset.cites;
-      if (cites) {
-        return {
-          el,
-          cites: cites.split(' ')
-        };
-      } else {
-        return findCites(el.parentElement)
-      }
-    } else {
-      return undefined;
-    }
-  };
-  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
-  for (var i=0; i<bibliorefs.length; i++) {
-    const ref = bibliorefs[i];
-    const citeInfo = findCites(ref);
-    if (citeInfo) {
-      tippyHover(citeInfo.el, function() {
-        var popup = window.document.createElement('div');
-        citeInfo.cites.forEach(function(cite) {
-          var citeDiv = window.document.createElement('div');
-          citeDiv.classList.add('hanging-indent');
-          citeDiv.classList.add('csl-entry');
-          var biblioDiv = window.document.getElementById('ref-' + cite);
-          if (biblioDiv) {
-            citeDiv.innerHTML = biblioDiv.innerHTML;
-          }
-          popup.appendChild(citeDiv);
-        });
-        return popup.innerHTML;
-      });
-    }
-  }
-});
+      <h2 id="au-ssm">Structure (SSM)</h2>
+      <div class="figure"><img src="index_files/figure-html/ssm-open-1.png" alt="SSM opening" /></div>
+      <div class="figure"><img src="index_files/figure-html/ssm-end-1.png" alt="SSM ending" /></div>
+
+      <h2 id="au-tempogram">Temporal Energy</h2>
+      <div class="figure"><img src="index_files/figure-html/tempogram-open-1.png" alt="Tempogram opening" /></div>
+      <div class="figure"><img src="index_files/figure-html/tempogram-end-1.png" alt="Tempogram ending" /></div>
+    </div>
+
+    <div class="page" id="page-model">
+      <h2 id="m-baseline">Baseline Model</h2>
+      <div class="figure"><img src="index_files/figure-html/clf-baseline-1.png" alt="Baseline model" /></div>
+
+      <h2 id="m-selected">Feature-Selected Model</h2>
+      <div class="figure"><img src="index_files/figure-html/clf-improved-1.png" alt="Feature selected model" /></div>
+
+      <h2 id="m-compare">Comparison</h2>
+      <div class="figure"><img src="index_files/figure-html/clf-compare-1.png" alt="Model comparison" /></div>
+      <p><strong>Conclusie:</strong> Een compacte feature set is genoeg voor sterke classificatie tussen OP en ED.</p>
+    </div>
+
+    <div class="page" id="page-conclusion">
+      <h2 id="c-key">Key Findings</h2>
+      <p>Openings en endings zijn meetbaar verschillend op tempo, energy, loudness, timbre en structuur.</p>
+      <h2 id="c-impact">Contribution</h2>
+      <p>Deze portfolio combineert corpusniveau en frame-level analyse met model-evaluatie op echte playlist-data.</p>
+    </div>
+  </main>
+  <aside class="toc" id="toc"></aside>
+</div>
+
+<script>
+const PAGES={
+  about:{toc:[["#a-question","Central Question"],["#a-corpus","Corpus"]]},
+  track:{toc:[["#t-energy","Energy × Valence"],["#t-tempo","Tempo Distribution"],["#t-loudness","Loudness"]]},
+  audio:{toc:[["#au-chroma","Chroma"],["#au-ssm","SSM"],["#au-tempogram","Temporal Energy"]]},
+  model:{toc:[["#m-baseline","Baseline"],["#m-selected","Feature-Selected"],["#m-compare","Comparison"]]},
+  conclusion:{toc:[["#c-key","Key Findings"],["#c-impact","Contribution"]]}
+};
+let current="";
+function buildLinks(items){return items.map(([href,label])=>`<a href="${href}" onclick="jump('${href}');return false;">${label}</a>`).join("")}
+function renderPanels(id){document.getElementById('sidebar').innerHTML='<div class="sidebar-section">On this page</div>'+buildLinks(PAGES[id].toc);document.getElementById('toc').innerHTML='<div class="toc-title">On this page</div>'+buildLinks(PAGES[id].toc)}
+function navigate(id){if(current===id)return;document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+id).classList.add('active');document.querySelectorAll('.navbar-links a').forEach(a=>a.classList.remove('active'));document.getElementById('nav-'+id).classList.add('active');current=id;renderPanels(id);window.scrollTo({top:0,behavior:'auto'})}
+function jump(href){const el=document.querySelector(href);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}
+window.addEventListener('scroll',()=>{if(!current)return;const list=PAGES[current].toc;let active=list[0][0];list.forEach(([href])=>{const el=document.querySelector(href);if(el&&el.getBoundingClientRect().top<120)active=href});document.querySelectorAll('.toc a,.sidebar a').forEach(a=>a.classList.toggle('active',a.getAttribute('href')===active))},{passive:true});
+navigate('about');
 </script>
-</div> <!-- /content -->
-
-
-
-
-<script src="index_files/libs/quarto-html/zenscroll-min.js"></script>
-</body></html>
+</body>
+</html>
