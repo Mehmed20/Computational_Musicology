@@ -1,6 +1,6 @@
 ---
 title: "Anime Openings vs Endings: A Computational Musicology Analysis"
-author: "Mehmed"
+author: "M'hamed Ibn Salah"
 date: "March 2026"
 format:
   html:
