@@ -7,157 +7,227 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet" />
 <style>
-:root{--bg:#0f1118;--bg-card:#161b27;--bg-border:#232b3e;--text:#d4dbe8;--muted:#6b7a99;--accent-o:#ff6b6b;--accent-e:#4dabf7;--accent-g:#a78bfa;--sidebar-w:255px;--toc-w:220px}
+:root{--bg:#0f1118;--bg-card:#161b27;--bg-border:#232b3e;--text:#d4dbe8;--muted:#6b7a99;--accent-g:#a78bfa;--sidebar-w:255px;--toc-w:220px}
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',serif;font-size:17px;line-height:1.75}
-.navbar{position:fixed;top:0;left:0;right:0;height:52px;background:#090c13;border-bottom:1px solid var(--bg-border);display:flex;align-items:center;padding:0 1.25rem;gap:1.4rem;z-index:300;font-family:'IBM Plex Mono',monospace;font-size:.76rem}
-.navbar-brand{color:var(--accent-g);font-weight:500;cursor:pointer}
+body{background:var(--bg);color:var(--text);font-family:'Source Serif 4',serif;font-size:17px;line-height:1.78}
+.navbar{position:fixed;top:0;left:0;right:0;height:52px;background:#090c13;border-bottom:1px solid var(--bg-border);display:flex;align-items:center;padding:0 1.2rem;gap:1rem;z-index:300;font-family:'IBM Plex Mono',monospace;font-size:.74rem}
+.navbar-brand{color:var(--accent-g);font-weight:500;cursor:pointer;white-space:nowrap}
 .navbar-links{display:flex;list-style:none;overflow-x:auto}
-.navbar-links a{display:block;padding:.3rem .72rem;border-radius:4px;color:var(--muted);text-decoration:none;cursor:pointer}
+.navbar-links a{display:block;padding:.3rem .6rem;border-radius:4px;color:var(--muted);text-decoration:none;cursor:pointer;white-space:nowrap}
 .navbar-links a:hover{color:var(--text);background:rgba(255,255,255,.04)}
 .navbar-links a.active{color:var(--accent-g);background:rgba(167,139,250,.12)}
 .layout{display:flex;margin-top:52px;min-height:calc(100vh - 52px)}
-.sidebar{position:fixed;top:52px;left:0;width:var(--sidebar-w);height:calc(100vh - 52px);background:#090c13;border-right:1px solid var(--bg-border);overflow:auto;padding:1.7rem 1rem 2rem 1.3rem;font-family:'IBM Plex Mono',monospace;font-size:.74rem}
-.sidebar-section{color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:.63rem;margin-bottom:.5rem}
-.sidebar a{display:block;color:var(--muted);text-decoration:none;padding:.26rem .4rem;border-radius:4px;line-height:1.45}
-.sidebar a.active,.sidebar a:hover{color:var(--text);background:rgba(255,255,255,.06)}
-.toc{position:fixed;top:52px;right:0;width:var(--toc-w);height:calc(100vh - 52px);overflow:auto;padding:1.7rem 1.1rem 2rem 1rem;border-left:1px solid var(--bg-border);font-family:'IBM Plex Mono',monospace;font-size:.72rem}
-.toc-title{color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:.63rem;margin-bottom:.6rem}
+.sidebar{position:fixed;top:52px;left:0;width:var(--sidebar-w);height:calc(100vh - 52px);background:#090c13;border-right:1px solid var(--bg-border);overflow:auto;padding:1.6rem 1rem 2rem 1.25rem;font-family:'IBM Plex Mono',monospace;font-size:.74rem}
+.sidebar-section{color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:.62rem;margin-bottom:.45rem}
+.sidebar a{display:block;color:var(--muted);text-decoration:none;padding:.24rem .35rem;border-radius:4px;line-height:1.45}
+.sidebar a:hover,.sidebar a.active{color:var(--text);background:rgba(255,255,255,.06)}
+.toc{position:fixed;top:52px;right:0;width:var(--toc-w);height:calc(100vh - 52px);overflow:auto;padding:1.6rem 1rem 2rem .9rem;border-left:1px solid var(--bg-border);font-family:'IBM Plex Mono',monospace;font-size:.71rem}
+.toc-title{color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-size:.62rem;margin-bottom:.55rem}
 .toc a{display:block;color:var(--muted);text-decoration:none;padding:.22rem 0 .22rem .45rem;border-left:2px solid transparent}
-.toc a.active,.toc a:hover{color:var(--accent-g);border-left-color:var(--accent-g)}
-.content{margin-left:var(--sidebar-w);margin-right:var(--toc-w);padding:3rem 3.5rem 5rem;max-width:940px;width:100%}
+.toc a:hover,.toc a.active{color:var(--accent-g);border-left-color:var(--accent-g)}
+.content{margin-left:var(--sidebar-w);margin-right:var(--toc-w);padding:3rem 3.4rem 5rem;max-width:980px;width:100%}
 .page{display:none;animation:fadeUp .3s ease both}
 .page.active{display:block}
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.title-block{border-left:3px solid var(--accent-g);padding-left:1.5rem;margin-bottom:2.3rem}
-.title-block h1{font-family:'Playfair Display',serif;font-size:2.5rem;color:#eef1f8;line-height:1.15;margin-bottom:.25rem}
-.title-block .subtitle{font-family:'IBM Plex Mono',monospace;font-size:.83rem;color:var(--accent-g);margin-bottom:1.2rem}
-.meta-grid{display:grid;grid-template-columns:90px 1fr;gap:.2rem .7rem;font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--muted);margin-bottom:1rem}
+.title-block{border-left:3px solid var(--accent-g);padding-left:1.4rem;margin-bottom:2.2rem}
+.title-block h1{font-family:'Playfair Display',serif;font-size:2.45rem;color:#eef1f8;line-height:1.15;margin-bottom:.25rem}
+.subtitle{font-family:'IBM Plex Mono',monospace;font-size:.82rem;color:var(--accent-g);margin-bottom:1.1rem}
+.meta-grid{display:grid;grid-template-columns:90px 1fr;gap:.15rem .65rem;font-family:'IBM Plex Mono',monospace;font-size:.74rem;color:var(--muted);margin-bottom:1rem}
 .meta-grid .value{color:var(--text)}
-.abstract-box{background:var(--bg-card);border:1px solid var(--bg-border);border-radius:6px;padding:.85rem 1rem;font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--muted)}
-h2{font-family:'Playfair Display',serif;font-size:1.5rem;color:#eef1f8;margin:2.6rem 0 .8rem;padding-bottom:.45rem;border-bottom:1px solid var(--bg-border)}
-h3{font-family:'Playfair Display',serif;font-size:1.14rem;color:#c8d3e8;margin:1.7rem 0 .5rem}
-p{margin-bottom:.92rem}
+.abstract-box{background:var(--bg-card);border:1px solid var(--bg-border);border-radius:6px;padding:.82rem 1rem;font-family:'IBM Plex Mono',monospace;font-size:.71rem;color:var(--muted)}
+h2{font-family:'Playfair Display',serif;font-size:1.48rem;color:#eef1f8;margin:2.45rem 0 .75rem;padding-bottom:.42rem;border-bottom:1px solid var(--bg-border)}
+h3{font-family:'Playfair Display',serif;font-size:1.12rem;color:#c8d3e8;margin:1.55rem 0 .45rem}
+p{margin-bottom:.9rem}
+ul{padding-left:1.25rem;margin-bottom:.9rem}
+li{margin-bottom:.3rem}
 strong{color:#eef1f8}
-.figure{margin:1.2rem 0;text-align:center}
+.callout{background:rgba(167,139,250,.08);border-left:4px solid var(--accent-g);padding:.82rem 1rem;border-radius:0 6px 6px 0;margin:1rem 0}
+.callout-title{font-family:'IBM Plex Mono',monospace;font-size:.71rem;color:var(--accent-g);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.3rem}
+.figure{margin:1.05rem 0;text-align:center}
 .figure img{max-width:100%;height:auto;border:1px solid var(--bg-border);border-radius:8px}
-.figure-caption{font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--muted);margin-top:.45rem}
-.table-wrap{overflow:auto;margin:1.1rem 0;border:1px solid var(--bg-border);border-radius:8px}
-table{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:.74rem}
-thead th{background:var(--bg-card);color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-size:.63rem;padding:.58rem .8rem;border-bottom:1px solid var(--bg-border);text-align:center}
-tbody td{padding:.55rem .8rem;border-bottom:1px solid var(--bg-border);text-align:center}
+.figure-caption{font-family:'IBM Plex Mono',monospace;font-size:.71rem;color:var(--muted);margin-top:.4rem}
+.table-wrap{overflow:auto;margin:1rem 0;border:1px solid var(--bg-border);border-radius:8px}
+table{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:.73rem}
+thead th{background:var(--bg-card);color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-size:.62rem;padding:.55rem .75rem;border-bottom:1px solid var(--bg-border);text-align:center}
+tbody td{padding:.53rem .75rem;border-bottom:1px solid var(--bg-border);text-align:center}
 tbody td:first-child{text-align:left;font-weight:500;color:#eef1f8}
-.callout{background:rgba(167,139,250,.08);border-left:4px solid var(--accent-g);padding:.9rem 1.1rem;border-radius:0 6px 6px 0;margin:1.1rem 0}
-.callout-title{font-family:'IBM Plex Mono',monospace;font-size:.72rem;color:var(--accent-g);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.35rem}
 @media(max-width:1100px){.toc{display:none}.content{margin-right:0}}
-@media(max-width:720px){.sidebar{display:none}.content{margin-left:0;padding:2rem 1.2rem 4rem}}
+@media(max-width:760px){.sidebar{display:none}.content{margin-left:0;padding:2rem 1.15rem 4rem}}
 </style>
 </head>
 <body>
 <nav class="navbar">
-  <span class="navbar-brand" onclick="navigate('about')">Anime OP/ED</span>
+  <span class="navbar-brand" onclick="navigate('background')">Anime OP/ED Portfolio</span>
   <ul class="navbar-links">
-    <li><a id="nav-about" onclick="navigate('about')">About</a></li>
-    <li><a id="nav-track" onclick="navigate('track')">Track Features</a></li>
-    <li><a id="nav-audio" onclick="navigate('audio')">Chroma & Temporal</a></li>
-    <li><a id="nav-model" onclick="navigate('model')">Classification</a></li>
-    <li><a id="nav-conclusion" onclick="navigate('conclusion')">Conclusion</a></li>
+    <li><a id="nav-background" onclick="navigate('background')">Background</a></li>
+    <li><a id="nav-track" onclick="navigate('track')">Track-level</a></li>
+    <li><a id="nav-chroma" onclick="navigate('chroma')">Chroma</a></li>
+    <li><a id="nav-loudness" onclick="navigate('loudness')">Loudness</a></li>
+    <li><a id="nav-timbre" onclick="navigate('timbre')">Timbre</a></li>
+    <li><a id="nav-temporal" onclick="navigate('temporal')">Temporal</a></li>
+    <li><a id="nav-classification" onclick="navigate('classification')">Classification</a></li>
+    <li><a id="nav-contribution" onclick="navigate('contribution')">Contribution</a></li>
   </ul>
 </nav>
+
 <div class="layout">
   <aside class="sidebar" id="sidebar"></aside>
   <main class="content">
-    <div class="page" id="page-about">
+
+    <div class="page" id="page-background">
       <div class="title-block">
         <h1>Anime Openings vs Endings</h1>
-        <div class="subtitle">Computational Musicology Portfolio</div>
+        <div class="subtitle">Computational Musicology — Final Portfolio</div>
         <div class="meta-grid">
           <span class="label">Author</span><span class="value">Mehmed</span>
           <span class="label">Affiliation</span><span class="value">Universiteit van Amsterdam</span>
-          <span class="label">Published</span><span class="value">March 2026</span>
+          <span class="label">Date</span><span class="value">March 2026</span>
         </div>
-        <div class="abstract-box">Dataset: Anime openings/endings playlists + frame-level chroma exports uit Sonic Visualiser (`opening.csv`, `ending.csv`).</div>
+        <div class="abstract-box">Real data sources: `Anime_Intros_THAT_GO_HARD.csv`, `Anime_Endings.csv`, `opening.csv`, `ending.csv`.</div>
       </div>
 
-      <h2 id="a-question">Central Question</h2>
-      <p>Kunnen we met computational features betrouwbaar onderscheid maken tussen anime openings en endings?</p>
-      <div class="callout"><div class="callout-title">Focus</div><p>Track-level Spotify features gecombineerd met chromagrammen, self-similarity matrices en tempogrammen.</p></div>
+      <h2 id="bg-question">Research Question</h2>
+      <p>De kernvraag is of anime openings en endings betrouwbaar te onderscheiden zijn met computational muziekfeatures, en welke features dat verschil het sterkst dragen.</p>
+      <p>Openings hebben meestal een activerende rol (hoge energie/drive), terwijl endings vaker afbouwen en emotionele closure geven. Deze hypothese test ik op trackniveau en frame-niveau.</p>
 
-      <h2 id="a-corpus">Corpus</h2>
-      <div class="table-wrap"><table>
-        <thead><tr><th>Type</th><th>Tracks</th><th>Tempo</th><th>Energy</th><th>Loudness</th></tr></thead>
-        <tbody>
-          <tr><td>Opening</td><td>200</td><td>Hoger</td><td>Hoger</td><td>Luider</td></tr>
-          <tr><td>Ending</td><td>57</td><td>Lager</td><td>Lager</td><td>Zachter</td></tr>
-        </tbody>
-      </table></div>
+      <h2 id="bg-selection">Track Selection</h2>
+      <p>De focus ligt op <strong>Just Awake</strong>, omdat deze track in beide contexten voorkomt: als opening met 191 BPM en als ending met 95.5 BPM. Daardoor kan dezelfde compositie onder verschillende functie worden vergeleken.</p>
+
+      <h2 id="bg-limits">Assumptions & Limitations</h2>
+      <ul>
+        <li>Spotify-features zijn afgeleide modelwaarden, geen handmatige annotaties.</li>
+        <li>Corpus is class-imbalanced (200 openings vs 57 endings), daarom gestratificeerde train/test split.</li>
+        <li>Conclusies gelden primair voor dit corpus en deze selectie.</li>
+      </ul>
     </div>
 
     <div class="page" id="page-track">
-      <h2 id="t-energy">Energy × Valence</h2>
-      <div class="figure"><img src="index_files/figure-html/energy-valence-1.png" alt="Energy valence" /><div class="figure-caption">Openings clusteren hoger op energy.</div></div>
+      <h2 id="tr-overview">Track-level Overview</h2>
+      <p>Deze pagina bekijkt globale verschillen tussen beide typen tracks op basis van tempo, energy, valence en loudness.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Type</th><th>N</th><th>Tempo</th><th>Energy</th><th>Loudness</th></tr></thead>
+        <tbody>
+          <tr><td>Openings</td><td>200</td><td>hoger</td><td>hoger</td><td>luider</td></tr>
+          <tr><td>Endings</td><td>57</td><td>lager</td><td>lager</td><td>zachter</td></tr>
+        </tbody>
+      </table></div>
 
-      <h2 id="t-tempo">Tempo Distribution</h2>
-      <div class="figure"><img src="index_files/figure-html/tempo-dist-1.png" alt="Tempo distribution" /><div class="figure-caption">Openings gemiddeld sneller dan endings.</div></div>
+      <h2 id="tr-energy">Energy × Valence</h2>
+      <div class="figure"><img src="index_files/figure-html/energy-valence-1.png" alt="Energy valence" /><div class="figure-caption">Openings liggen vaker in de hoge-energy regio.</div></div>
 
-      <h2 id="t-loudness">Loudness</h2>
-      <div class="figure"><img src="index_files/figure-html/loudness-dist-1.png" alt="Loudness" /><div class="figure-caption">Openings luider gemasterd dan endings.</div></div>
+      <h2 id="tr-tempo">Tempo Distribution</h2>
+      <div class="figure"><img src="index_files/figure-html/tempo-dist-1.png" alt="Tempo" /><div class="figure-caption">Tempo is een sterke discriminator tussen OP en ED.</div></div>
     </div>
 
-    <div class="page" id="page-audio">
-      <h2 id="au-chroma">Chroma: Just Awake</h2>
-      <h3>Opening (191 BPM)</h3>
-      <div class="figure"><img src="index_files/figure-html/chroma-open-1.png" alt="Chromagram opening" /></div>
-      <h3>Ending (95.5 BPM)</h3>
-      <div class="figure"><img src="index_files/figure-html/chroma-end-1.png" alt="Chromagram ending" /></div>
+    <div class="page" id="page-chroma">
+      <h2 id="ch-why">Why Chroma</h2>
+      <p>Chroma-features tonen pitch-class energie (C t/m B) over de tijd. Daarmee kan harmonische kleur tussen opening- en endingversies van dezelfde track worden vergeleken.</p>
 
-      <h2 id="au-ssm">Structure (SSM)</h2>
-      <div class="figure"><img src="index_files/figure-html/ssm-open-1.png" alt="SSM opening" /></div>
-      <div class="figure"><img src="index_files/figure-html/ssm-end-1.png" alt="SSM ending" /></div>
+      <h2 id="ch-open">Chromagram — Opening</h2>
+      <div class="figure"><img src="index_files/figure-html/chroma-open-1.png" alt="Chroma open" /></div>
 
-      <h2 id="au-tempogram">Temporal Energy</h2>
-      <div class="figure"><img src="index_files/figure-html/tempogram-open-1.png" alt="Tempogram opening" /></div>
-      <div class="figure"><img src="index_files/figure-html/tempogram-end-1.png" alt="Tempogram ending" /></div>
+      <h2 id="ch-end">Chromagram — Ending</h2>
+      <div class="figure"><img src="index_files/figure-html/chroma-end-1.png" alt="Chroma end" /></div>
+
+      <h2 id="ch-pitch">Interpretation</h2>
+      <p>Harmonische kern blijft vergelijkbaar, maar de temporele dichtheid verschuift: opening is compacter en agressiever, ending meer uitgesmeerd en rustig.</p>
     </div>
 
-    <div class="page" id="page-model">
-      <h2 id="m-baseline">Baseline Model</h2>
-      <div class="figure"><img src="index_files/figure-html/clf-baseline-1.png" alt="Baseline model" /></div>
+    <div class="page" id="page-loudness">
+      <h2 id="lo-track">Track-level Loudness</h2>
+      <p>Loudness verklaart een deel van de directe impact van openings. Endings tonen lagere loudness, wat past bij een afsluitende functie.</p>
+      <div class="figure"><img src="index_files/figure-html/loudness-dist-1.png" alt="Loudness dist" /></div>
 
-      <h2 id="m-selected">Feature-Selected Model</h2>
-      <div class="figure"><img src="index_files/figure-html/clf-improved-1.png" alt="Feature selected model" /></div>
+      <h2 id="lo-energy">Loudness vs Energy</h2>
+      <div class="figure"><img src="index_files/figure-html/loudness-energy-1.png" alt="Loudness energy" /></div>
 
-      <h2 id="m-compare">Comparison</h2>
-      <div class="figure"><img src="index_files/figure-html/clf-compare-1.png" alt="Model comparison" /></div>
-      <p><strong>Conclusie:</strong> Een compacte feature set is genoeg voor sterke classificatie tussen OP en ED.</p>
+      <h2 id="lo-interpret">Interpretation</h2>
+      <p>Openings zitten gemiddeld dichter bij “luid en energiek”, endings vaker bij “rustiger en minder hard”.</p>
     </div>
 
-    <div class="page" id="page-conclusion">
-      <h2 id="c-key">Key Findings</h2>
-      <p>Openings en endings zijn meetbaar verschillend op tempo, energy, loudness, timbre en structuur.</p>
-      <h2 id="c-impact">Contribution</h2>
-      <p>Deze portfolio combineert corpusniveau en frame-level analyse met model-evaluatie op echte playlist-data.</p>
+    <div class="page" id="page-timbre">
+      <h2 id="ti-features">Timbre Distributions</h2>
+      <p>Timbre-features zoals acousticness en instrumentalness geven inzicht in textuur en productie-esthetiek.</p>
+      <div class="figure"><img src="index_files/figure-html/timbre-features-1.png" alt="Timbre features" /></div>
+
+      <h2 id="ti-space">Timbre Space</h2>
+      <div class="figure"><img src="index_files/figure-html/timbre-space-1.png" alt="Timbre space" /></div>
+
+      <h2 id="ti-meaning">Interpretation</h2>
+      <p>Endings vertonen relatief meer ruimte/akoestische componenten, terwijl openings vaak directer en compacter geproduceerd zijn.</p>
     </div>
+
+    <div class="page" id="page-temporal">
+      <h2 id="te-rhythm">Temporal Structure</h2>
+      <p>Met tempogrammen en self-similarity matrices wordt zichtbaar hoe ritme en formele segmenten zich door de tijd ontwikkelen.</p>
+
+      <h2 id="te-tempo-dance">Tempo vs Danceability</h2>
+      <div class="figure"><img src="index_files/figure-html/tempo-dance-1.png" alt="Tempo dance" /></div>
+
+      <h2 id="te-open">Tempogram — Opening</h2>
+      <div class="figure"><img src="index_files/figure-html/tempogram-open-1.png" alt="Tempogram open" /></div>
+
+      <h2 id="te-end">Tempogram — Ending</h2>
+      <div class="figure"><img src="index_files/figure-html/tempogram-end-1.png" alt="Tempogram end" /></div>
+
+      <h2 id="te-ssm">SSM Comparison</h2>
+      <div class="figure"><img src="index_files/figure-html/ssm-open-1.png" alt="SSM open" /></div>
+      <div class="figure"><img src="index_files/figure-html/ssm-end-1.png" alt="SSM end" /></div>
+    </div>
+
+    <div class="page" id="page-classification">
+      <h2 id="cl-setup">Model Setup</h2>
+      <p>Logistische regressie met gestratificeerde split (80/20) test hoe goed OP/ED op features te voorspellen is.</p>
+
+      <h2 id="cl-base">Baseline</h2>
+      <div class="figure"><img src="index_files/figure-html/clf-baseline-1.png" alt="Baseline" /></div>
+
+      <h2 id="cl-step">Feature Selection</h2>
+      <div class="figure"><img src="index_files/figure-html/clf-improved-1.png" alt="Improved" /></div>
+
+      <h2 id="cl-compare">Comparison</h2>
+      <div class="figure"><img src="index_files/figure-html/clf-compare-1.png" alt="Compare" /></div>
+      <p>De geselecteerde kernfeatures presteren vergelijkbaar, wat wijst op een robuuste compacte feature-set.</p>
+    </div>
+
+    <div class="page" id="page-contribution">
+      <h2 id="co-learned">What I Learned</h2>
+      <ul>
+        <li>Openings/endings verschillen consistent op meerdere feature-lagen.</li>
+        <li>Tempo + loudness + energy verklaren een groot deel van het functionele verschil.</li>
+        <li>Frame-level analyse geeft extra context bovenop track-level gemiddelden.</li>
+      </ul>
+
+      <h2 id="co-benefit">Who Benefits</h2>
+      <p>De aanpak is nuttig voor composers, music supervisors en onderzoekers die opening/ending-geschiktheid objectiever willen evalueren.</p>
+
+      <h2 id="co-next">Next Step</h2>
+      <p>Vervolgwerk: uitbreiden naar meerdere anime-corpora en robuustheid testen per subgenre en seizoen.</p>
+    </div>
+
   </main>
   <aside class="toc" id="toc"></aside>
 </div>
 
 <script>
-const PAGES={
-  about:{toc:[["#a-question","Central Question"],["#a-corpus","Corpus"]]},
-  track:{toc:[["#t-energy","Energy × Valence"],["#t-tempo","Tempo Distribution"],["#t-loudness","Loudness"]]},
-  audio:{toc:[["#au-chroma","Chroma"],["#au-ssm","SSM"],["#au-tempogram","Temporal Energy"]]},
-  model:{toc:[["#m-baseline","Baseline"],["#m-selected","Feature-Selected"],["#m-compare","Comparison"]]},
-  conclusion:{toc:[["#c-key","Key Findings"],["#c-impact","Contribution"]]}
+const PAGES = {
+  background: { toc: [["#bg-question", "Research Question"], ["#bg-selection", "Track Selection"], ["#bg-limits", "Assumptions"]] },
+  track: { toc: [["#tr-overview", "Overview"], ["#tr-energy", "Energy × Valence"], ["#tr-tempo", "Tempo"]] },
+  chroma: { toc: [["#ch-why", "Why Chroma"], ["#ch-open", "Opening"], ["#ch-end", "Ending"], ["#ch-pitch", "Interpretation"]] },
+  loudness: { toc: [["#lo-track", "Track-level"], ["#lo-energy", "Loudness vs Energy"], ["#lo-interpret", "Interpretation"]] },
+  timbre: { toc: [["#ti-features", "Distributions"], ["#ti-space", "Timbre Space"], ["#ti-meaning", "Interpretation"]] },
+  temporal: { toc: [["#te-rhythm", "Temporal Structure"], ["#te-tempo-dance", "Tempo vs Danceability"], ["#te-open", "Opening Tempogram"], ["#te-end", "Ending Tempogram"], ["#te-ssm", "SSM"]] },
+  classification: { toc: [["#cl-setup", "Setup"], ["#cl-base", "Baseline"], ["#cl-step", "Feature Selection"], ["#cl-compare", "Comparison"]] },
+  contribution: { toc: [["#co-learned", "Learned"], ["#co-benefit", "Who Benefits"], ["#co-next", "Next Step"]] }
 };
-let current="";
+let current = "";
 function buildLinks(items){return items.map(([href,label])=>`<a href="${href}" onclick="jump('${href}');return false;">${label}</a>`).join("")}
 function renderPanels(id){document.getElementById('sidebar').innerHTML='<div class="sidebar-section">On this page</div>'+buildLinks(PAGES[id].toc);document.getElementById('toc').innerHTML='<div class="toc-title">On this page</div>'+buildLinks(PAGES[id].toc)}
 function navigate(id){if(current===id)return;document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+id).classList.add('active');document.querySelectorAll('.navbar-links a').forEach(a=>a.classList.remove('active'));document.getElementById('nav-'+id).classList.add('active');current=id;renderPanels(id);window.scrollTo({top:0,behavior:'auto'})}
 function jump(href){const el=document.querySelector(href);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}
 window.addEventListener('scroll',()=>{if(!current)return;const list=PAGES[current].toc;let active=list[0][0];list.forEach(([href])=>{const el=document.querySelector(href);if(el&&el.getBoundingClientRect().top<120)active=href});document.querySelectorAll('.toc a,.sidebar a').forEach(a=>a.classList.toggle('active',a.getAttribute('href')===active))},{passive:true});
-navigate('about');
+navigate('background');
 </script>
 </body>
 </html>
